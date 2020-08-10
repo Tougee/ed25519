@@ -1,0 +1,1 @@
+A Dart implementation of ed25519, inspired by [Go cryptography libraries](https://github.com/golang/crypto/tree/master/ed25519)
