@@ -16,3 +16,5 @@ Usage
         assert(wrongResult == false);
       });
 ```
+
+[Pub package](https://pub.dev/packages/ed25519_edwards)
