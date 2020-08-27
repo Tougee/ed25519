@@ -243,7 +243,7 @@ int FeIsNegative(FieldElement f) {
 int FeIsNonZero(FieldElement f) {
   var s = Uint8List(32);
   FeToBytes(s, f);
-  int x;
+  var x = 0;
   for (var i = 0; i < s.length; i++) {
     x |= s[i];
   }
@@ -906,8 +906,8 @@ class ExtendedGroupElement {
     FeMul(X, X, v3);
     FeMul(X, X, u); // x = uv^3(uv^7)^((q-5)/8)
 
-    Uint8List tmpX;
-    Uint8List tmp2;
+    var tmpX = Uint8List(32);
+    var tmp2 = Uint8List(32);
 
     FeSquare(vxx, X);
     FeMul(vxx, vxx, v);
@@ -1049,9 +1049,9 @@ void geMixedSub(CompletedGroupElement r, ExtendedGroupElement p,
   FeAdd(r.T, t0, r.T);
 }
 
-void slide(List<int> r, Uint8List a) {
+void slide(Int8List r, Uint8List a) {
   for (var i = 0; i < r.length; i++) {
-    r[i] = 1 & (a[i >> 3] >> i & 7);
+    r[i] = 1 & (a[i >> 3] >> (i & 7));
   }
 
   for (var i = 0; i < r.length; i++) {
@@ -1085,9 +1085,10 @@ void slide(List<int> r, Uint8List a) {
 // B is the Ed25519 base point (x,4/5) with x positive.
 void GeDoubleScalarMultVartime(ProjectiveGroupElement r, Uint8List a,
     ExtendedGroupElement A, Uint8List b) {
-  var aSlide = List<int>(256);
-  var bSlide = List<int>(256);
-  var Ai = List<CachedGroupElement>(8); // A,3A,5A,7A,9A,11A,13A,15A
+  var aSlide = Int8List(256);
+  var bSlide = Int8List(256);
+  var Ai = List.generate(
+      8, (index) => CachedGroupElement()); // A,3A,5A,7A,9A,11A,13A,15A
   var t = CompletedGroupElement();
   var u = ExtendedGroupElement();
   var A2 = ExtendedGroupElement();
