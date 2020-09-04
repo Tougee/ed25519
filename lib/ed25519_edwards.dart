@@ -142,7 +142,7 @@ bool verify(PublicKey publicKey, Uint8List message, Uint8List sig) {
   }
 
   var A = ExtendedGroupElement();
-  var publicKeyBytes = publicKey.bytes;
+  var publicKeyBytes = Uint8List.fromList(publicKey.bytes);
   if (!A.FromBytes(publicKeyBytes)) {
     return false;
   }
