@@ -17,4 +17,29 @@ Usage
       });
 ```
 
+| Exports |
+| :---: |
+| FeZero |
+| FeOne  |
+| FeAdd |
+| FeSub |
+| FeCopy |
+| FeCMove |
+| FeFromBytes |
+| FeToBytes |
+| FeIsNegative |
+| FeIsNonZero |
+| FeNeg |
+| FeCombine |
+| FeMul |
+| FeSqaure |
+| FeSquare2 |
+| FeInvert |
+| GeDoubleScalarMultVartime |
+| PreComputedGroupElementCMove |
+| GeScalarMultBase |
+| ScMulAdd |
+| ScReduce |
+| ScMinimal |
+
 [Pub package](https://pub.dev/packages/ed25519_edwards)
