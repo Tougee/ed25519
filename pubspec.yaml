@@ -9,6 +9,7 @@ environment:
 dependencies:
   cryptography: ^1.4.1
   collection: ^1.14.13
+  hex: ^0.1.2
 
 dev_dependencies:
   pedantic: ^1.9.0

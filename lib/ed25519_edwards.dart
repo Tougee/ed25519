@@ -46,12 +46,12 @@ class KeyPair {
 }
 
 PublicKey public(PrivateKey privateKey) {
-  var publicKey = privateKey.bytes.sublist(32, PublicKeySize);
+  var publicKey = privateKey.bytes.sublist(32, 32 + PublicKeySize);
   return PublicKey(publicKey);
 }
 
 Uint8List seed(PrivateKey privateKey) {
-  var seed = privateKey.bytes.sublist(32, SeedSize);
+  var seed = privateKey.bytes.sublist(0, SeedSize);
   return seed;
 }
 
