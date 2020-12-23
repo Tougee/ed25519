@@ -146,7 +146,7 @@ void FeFromBytes(FieldElement dst, Uint8List src) {
 //   Have q+2^(-255)x = 2^(-255)(h + 19 2^(-25) h9 + 2^(-1))
 //   so floor(2^(-255)(h + 19 2^(-25) h9 + 2^(-1))) = q.
 void FeToBytes(Uint8List s, FieldElement h) {
-  var carry = List<int>(10);
+  var carry = List<int>.filled(10, 0);
 
   var q = (19 * h[9] + (1 << 24)) >> 25;
   q = (h[0] + q) >> 26;
@@ -1190,7 +1190,7 @@ void selectPoint(PreComputedGroupElement t, int pos, int b) {
 // Preconditions:
 //   a[31] <= 127
 void GeScalarMultBase(ExtendedGroupElement h, Uint8List a) {
-  var e = List<int>(64);
+  var e = List<int>.filled(64, 0);
 
   for (var i = 0; i < a.length; i++) {
     var v = a[i];
