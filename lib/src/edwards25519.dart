@@ -799,7 +799,6 @@ void fePow22523(FieldElement out, FieldElement z) {
 ///   ExtendedGroupElement: (X:Y:Z:T) satisfying x=X/Z, y=Y/Z, XY=ZT
 ///   CompletedGroupElement: ((X:Z),(Y:T)) satisfying x=X/Z, y=Y/T
 ///   PreComputedGroupElement: (y+x,y-x,2dxy)
-
 class ProjectiveGroupElement {
   FieldElement X = FieldElement();
   FieldElement Y = FieldElement();
@@ -1146,9 +1145,9 @@ int equal(int b, int c) {
   } else {
     return 0;
   }
-///  var x = b ^ c;
-///  x--;
-///  return x >> 31;
+//  var x = b ^ c;
+//  x--;
+//  return x >> 31;
 }
 
 /// negative returns 1 if b < 0 and 0 otherwise.
@@ -1158,7 +1157,7 @@ int negative(int b) {
   } else {
     return 0;
   }
-///  return (b >> 31) & 1;
+//  return (b >> 31) & 1;
 }
 
 void PreComputedGroupElementCMove(

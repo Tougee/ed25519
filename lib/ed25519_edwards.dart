@@ -1,3 +1,12 @@
+/// Package ed25519 implements the Ed25519 signature algorithm. See
+/// https://ed25519.cr.yp.to/.
+///
+/// These functions are also compatible with the “Ed25519” function defined in
+/// RFC 8032. However, unlike RFC 8032's formulation, this package's private key
+/// representation includes a public key suffix to make multiple signing
+/// operations with the same key more efficient. This package refers to the RFC
+/// 8032 private key as the “seed”.
+
 library edwards25519;
 
 import 'dart:typed_data';
@@ -16,18 +25,21 @@ const SignatureSize = 64;
 /// SeedSize is the size, in bytes, of private key seeds. These are the private key representations used by RFC 8032.
 const SeedSize = 32;
 
+/// PublicKey is the type of Ed25519 public keys.
 class PublicKey {
   List<int> bytes;
 
   PublicKey(this.bytes);
 }
 
+/// PrivateKey is the type of Ed25519 private keys.
 class PrivateKey {
   List<int> bytes;
 
   PrivateKey(this.bytes);
 }
 
+/// KeyPair is the type of Ed25519 public/private key pair.
 class KeyPair {
   final PrivateKey privateKey;
 
@@ -45,16 +57,21 @@ class KeyPair {
       privateKey == other.privateKey;
 }
 
+// Public returns the PublicKey corresponding to priv.
 PublicKey public(PrivateKey privateKey) {
   var publicKey = privateKey.bytes.sublist(32, 32 + PublicKeySize);
   return PublicKey(publicKey);
 }
 
+/// Seed returns the private key seed corresponding to priv. It is provided for
+/// interoperability with RFC 8032. RFC 8032's private keys correspond to seeds
+/// in this package.
 Uint8List seed(PrivateKey privateKey) {
   var seed = privateKey.bytes.sublist(0, SeedSize);
   return seed;
 }
 
+/// GenerateKey generates a public/private key pair using entropy from secure random.
 KeyPair generateKey() {
   var seed = Uint8List(32);
   fillBytesWithSecureRandomNumbers(seed);
@@ -63,6 +80,10 @@ KeyPair generateKey() {
   return KeyPair(privateKey: privateKey, publicKey: PublicKey(publicKey));
 }
 
+/// NewKeyFromSeed calculates a private key from a seed. It will throw 
+/// ArgumentError if seed.length is not SeedSize. 
+/// This function is provided for interoperability with RFC 8032. 
+/// RFC 8032's private keys correspond to seeds in this package.
 PrivateKey newKeyFromSeed(Uint8List seed) {
   if (seed.length != SeedSize) {
     throw ArgumentError('ed25519: bad seed length ${seed.length}');
@@ -85,6 +106,8 @@ PrivateKey newKeyFromSeed(Uint8List seed) {
   return PrivateKey(privateKey);
 }
 
+/// Sign signs the message with privateKey and returns a signature. It will
+/// throw ArumentError if privateKey.bytes.length is not PrivateKeySize.
 Uint8List sign(PrivateKey privateKey, Uint8List message) {
   if (privateKey.bytes.length != PrivateKeySize) {
     throw ArgumentError(
@@ -132,6 +155,8 @@ Uint8List sign(PrivateKey privateKey, Uint8List message) {
   return signature;
 }
 
+/// Verify reports whether sig is a valid signature of message by publicKey. It
+/// will throw ArgumentError if publicKey.bytes.length is not PublicKeySize.
 bool verify(PublicKey publicKey, Uint8List message, Uint8List sig) {
   if (publicKey.bytes.length != PublicKeySize) {
     throw ArgumentError(
