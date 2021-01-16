@@ -72,10 +72,10 @@ void FeCopy(FieldElement dst, FieldElement src) {
   fieldElementFullCopy(src, dst);
 }
 
-// Replace (f,g) with (g,g) if b == 1;
-// replace (f,g) with (f,g) if b == 0.
-//
-// Preconditions: b in {0,1}.
+/// Replace (f,g) with (g,g) if b == 1;
+/// replace (f,g) with (f,g) if b == 0.
+///
+/// Preconditions: b in {0,1}.
 void FeCMove(FieldElement f, FieldElement g, int b) {
   b = -b;
   f[0] ^= b & (f[0] ^ g[0]);
@@ -122,29 +122,29 @@ void FeFromBytes(FieldElement dst, Uint8List src) {
   FeCombine(dst, h0, h1, h2, h3, h4, h5, h6, h7, h8, h9);
 }
 
-// FeToBytes marshals h to s.
-// Preconditions:
-//   |h| bounded by 1.1*2^25,1.1*2^24,1.1*2^25,1.1*2^24,etc.
-//
-// Write p=2^255-19; q=floor(h/p).
-// Basic claim: q = floor(2^(-255)(h + 19 2^(-25)h9 + 2^(-1))).
-//
-// Proof:
-//   Have |h|<=p so |q|<=1 so |19^2 2^(-255) q|<1/4.
-//   Also have |h-2^230 h9|<2^230 so |19 2^(-255)(h-2^230 h9)|<1/4.
-//
-//   Write y=2^(-1)-19^2 2^(-255)q-19 2^(-255)(h-2^230 h9).
-//   Then 0<y<1.
-//
-//   Write r=h-pq.
-//   Have 0<=r<=p-1=2^255-20.
-//   Thus 0<=r+19(2^-255)r<r+19(2^-255)2^255<=2^255-1.
-//
-//   Write x=r+19(2^-255)r+y.
-//   Then 0<x<2^255 so floor(2^(-255)x) = 0 so floor(q+2^(-255)x) = q.
-//
-//   Have q+2^(-255)x = 2^(-255)(h + 19 2^(-25) h9 + 2^(-1))
-//   so floor(2^(-255)(h + 19 2^(-25) h9 + 2^(-1))) = q.
+/// FeToBytes marshals h to s.
+/// Preconditions:
+///   |h| bounded by 1.1*2^25,1.1*2^24,1.1*2^25,1.1*2^24,etc.
+///
+/// Write p=2^255-19; q=floor(h/p).
+/// Basic claim: q = floor(2^(-255)(h + 19 2^(-25)h9 + 2^(-1))).
+///
+/// Proof:
+///   Have |h|<=p so |q|<=1 so |19^2 2^(-255) q|<1/4.
+///   Also have |h-2^230 h9|<2^230 so |19 2^(-255)(h-2^230 h9)|<1/4.
+///
+///   Write y=2^(-1)-19^2 2^(-255)q-19 2^(-255)(h-2^230 h9).
+///   Then 0<y<1.
+///
+///   Write r=h-pq.
+///   Have 0<=r<=p-1=2^255-20.
+///   Thus 0<=r+19(2^-255)r<r+19(2^-255)2^255<=2^255-1.
+///
+///   Write x=r+19(2^-255)r+y.
+///   Then 0<x<2^255 so floor(2^(-255)x) = 0 so floor(q+2^(-255)x) = q.
+///
+///   Have q+2^(-255)x = 2^(-255)(h + 19 2^(-25) h9 + 2^(-1))
+///   so floor(2^(-255)(h + 19 2^(-25) h9 + 2^(-1))) = q.
 void FeToBytes(Uint8List s, FieldElement h) {
   var carry = List<int>.filled(10, 0);
 
@@ -253,13 +253,13 @@ int FeIsNonZero(FieldElement f) {
   return x & 1;
 }
 
-// FeNeg sets h = -f
-//
-// Preconditions:
-//    |f| bounded by 1.1*2^25,1.1*2^24,1.1*2^25,1.1*2^24,etc.
-//
-// Postconditions:
-//    |h| bounded by 1.1*2^25,1.1*2^24,1.1*2^25,1.1*2^24,etc.
+/// FeNeg sets h = -f
+///
+/// Preconditions:
+///    |f| bounded by 1.1*2^25,1.1*2^24,1.1*2^25,1.1*2^24,etc.
+///
+/// Postconditions:
+///    |h| bounded by 1.1*2^25,1.1*2^24,1.1*2^25,1.1*2^24,etc.
 void FeNeg(FieldElement h, FieldElement f) {
   h[0] = -f[0];
   h[1] = -f[1];
@@ -372,33 +372,33 @@ void FeCombine(FieldElement h, int h0, int h1, int h2, int h3, int h4, int h5,
   h[9] = h9;
 }
 
-// FeMul calculates h = f * g
-// Can overlap h with f or g.
-//
-// Preconditions:
-//    |f| bounded by 1.1*2^26,1.1*2^25,1.1*2^26,1.1*2^25,etc.
-//    |g| bounded by 1.1*2^26,1.1*2^25,1.1*2^26,1.1*2^25,etc.
-//
-// Postconditions:
-//    |h| bounded by 1.1*2^25,1.1*2^24,1.1*2^25,1.1*2^24,etc.
-//
-// Notes on implementation strategy:
-//
-// Using schoolbook multiplication.
-// Karatsuba would save a little in some cost models.
-//
-// Most multiplications by 2 and 19 are 32-bit precomputations;
-// cheaper than 64-bit postcomputations.
-//
-// There is one remaining multiplication by 19 in the carry chain;
-// one *19 precomputation can be merged into this,
-// but the resulting data flow is considerably less clean.
-//
-// There are 12 carries below.
-// 10 of them are 2-way parallelizable and vectorizable.
-// Can get away with 11 carries, but then data flow is much deeper.
-//
-// With tighter constraints on inputs, can squeeze carries into int32.
+/// FeMul calculates h = f * g
+/// Can overlap h with f or g.
+///
+/// Preconditions:
+///    |f| bounded by 1.1*2^26,1.1*2^25,1.1*2^26,1.1*2^25,etc.
+///    |g| bounded by 1.1*2^26,1.1*2^25,1.1*2^26,1.1*2^25,etc.
+///
+/// Postconditions:
+///    |h| bounded by 1.1*2^25,1.1*2^24,1.1*2^25,1.1*2^24,etc.
+///
+/// Notes on implementation strategy:
+///
+/// Using schoolbook multiplication.
+/// Karatsuba would save a little in some cost models.
+///
+/// Most multiplications by 2 and 19 are 32-bit precomputations;
+/// cheaper than 64-bit postcomputations.
+///
+/// There is one remaining multiplication by 19 in the carry chain;
+/// one *19 precomputation can be merged into this,
+/// but the resulting data flow is considerably less clean.
+///
+/// There are 12 carries below.
+/// 10 of them are 2-way parallelizable and vectorizable.
+/// Can get away with 11 carries, but then data flow is much deeper.
+///
+/// With tighter constraints on inputs, can squeeze carries into int32.
 void FeMul(FieldElement h, f, g) {
   var f0 = f[0];
   var f1 = f[1];
@@ -602,13 +602,13 @@ List<int> feSquare(f) {
   return [h0, h1, h2, h3, h4, h5, h6, h7, h8, h9];
 }
 
-// FeSquare calculates h = f*f. Can overlap h with f.
-//
-// Preconditions:
-//    |f| bounded by 1.1*2^26,1.1*2^25,1.1*2^26,1.1*2^25,etc.
-//
-// Postconditions:
-//    |h| bounded by 1.1*2^25,1.1*2^24,1.1*2^25,1.1*2^24,etc.
+/// FeSquare calculates h = f*f. Can overlap h with f.
+///
+/// Preconditions:
+///    |f| bounded by 1.1*2^26,1.1*2^25,1.1*2^26,1.1*2^25,etc.
+///
+/// Postconditions:
+///    |h| bounded by 1.1*2^25,1.1*2^24,1.1*2^25,1.1*2^24,etc.
 void FeSquare(FieldElement h, FieldElement f) {
   var fs = feSquare(f);
   var h0 = fs[0];
@@ -624,16 +624,16 @@ void FeSquare(FieldElement h, FieldElement f) {
   FeCombine(h, h0, h1, h2, h3, h4, h5, h6, h7, h8, h9);
 }
 
-// FeSquare2 sets h = 2 * f * f
-//
-// Can overlap h with f.
-//
-// Preconditions:
-//    |f| bounded by 1.65*2^26,1.65*2^25,1.65*2^26,1.65*2^25,etc.
-//
-// Postconditions:
-//    |h| bounded by 1.01*2^25,1.01*2^24,1.01*2^25,1.01*2^24,etc.
-// See fe_mul.c for discussion of implementation strategy.
+/// FeSquare2 sets h = 2 * f * f
+///
+/// Can overlap h with f.
+///
+/// Preconditions:
+///    |f| bounded by 1.65*2^26,1.65*2^25,1.65*2^26,1.65*2^25,etc.
+///
+/// Postconditions:
+///    |h| bounded by 1.01*2^25,1.01*2^24,1.01*2^25,1.01*2^24,etc.
+/// See fe_mul.c for discussion of implementation strategy.
 void FeSquare2(FieldElement h, FieldElement f) {
   var fs = feSquare(f);
   var h0 = fs[0];
@@ -791,14 +791,14 @@ void fePow22523(FieldElement out, FieldElement z) {
   FeMul(out, t0, z);
 }
 
-// Group elements are members of the elliptic curve -x^2 + y^2 = 1 + d * x^2 *
-// y^2 where d = -121665/121666.
-//
-// Several representations are used:
-//   ProjectiveGroupElement: (X:Y:Z) satisfying x=X/Z, y=Y/Z
-//   ExtendedGroupElement: (X:Y:Z:T) satisfying x=X/Z, y=Y/Z, XY=ZT
-//   CompletedGroupElement: ((X:Z),(Y:T)) satisfying x=X/Z, y=Y/T
-//   PreComputedGroupElement: (y+x,y-x,2dxy)
+/// Group elements are members of the elliptic curve -x^2 + y^2 = 1 + d * x^2 *
+/// y^2 where d = -121665/121666.
+///
+/// Several representations are used:
+///   ProjectiveGroupElement: (X:Y:Z) satisfying x=X/Z, y=Y/Z
+///   ExtendedGroupElement: (X:Y:Z:T) satisfying x=X/Z, y=Y/Z, XY=ZT
+///   CompletedGroupElement: ((X:Z),(Y:T)) satisfying x=X/Z, y=Y/T
+///   PreComputedGroupElement: (y+x,y-x,2dxy)
 
 class ProjectiveGroupElement {
   FieldElement X = FieldElement();
@@ -1079,10 +1079,10 @@ void slide(Int8List r, Uint8List a) {
   }
 }
 
-// GeDoubleScalarMultVartime sets r = a*A + b*B
-// where a = a[0]+256*a[1]+...+256^31 a[31].
-// and b = b[0]+256*b[1]+...+256^31 b[31].
-// B is the Ed25519 base point (x,4/5) with x positive.
+/// GeDoubleScalarMultVartime sets r = a*A + b*B
+/// where a = a[0]+256*a[1]+...+256^31 a[31].
+/// and b = b[0]+256*b[1]+...+256^31 b[31].
+/// B is the Ed25519 base point (x,4/5) with x positive.
 void GeDoubleScalarMultVartime(ProjectiveGroupElement r, Uint8List a,
     ExtendedGroupElement A, Uint8List b) {
   var aSlide = Int8List(256);
@@ -1138,27 +1138,27 @@ void GeDoubleScalarMultVartime(ProjectiveGroupElement r, Uint8List a,
   }
 }
 
-// equal returns 1 if b == c and 0 otherwise, assuming that b and c are
-// non-negative.
+/// equal returns 1 if b == c and 0 otherwise, assuming that b and c are
+/// non-negative.
 int equal(int b, int c) {
   if (b == c) {
     return 1;
   } else {
     return 0;
   }
-//  var x = b ^ c;
-//  x--;
-//  return x >> 31;
+///  var x = b ^ c;
+///  x--;
+///  return x >> 31;
 }
 
-// negative returns 1 if b < 0 and 0 otherwise.
+/// negative returns 1 if b < 0 and 0 otherwise.
 int negative(int b) {
   if (b < 0) {
     return 1;
   } else {
     return 0;
   }
-//  return (b >> 31) & 1;
+///  return (b >> 31) & 1;
 }
 
 void PreComputedGroupElementCMove(
@@ -1183,12 +1183,12 @@ void selectPoint(PreComputedGroupElement t, int pos, int b) {
   PreComputedGroupElementCMove(t, minusT, bNegative);
 }
 
-// GeScalarMultBase computes h = a*B, where
-//   a = a[0]+256*a[1]+...+256^31 a[31]
-//   B is the Ed25519 base point (x,4/5) with x positive.
-//
-// Preconditions:
-//   a[31] <= 127
+/// GeScalarMultBase computes h = a*B, where
+///   a = a[0]+256*a[1]+...+256^31 a[31]
+///   B is the Ed25519 base point (x,4/5) with x positive.
+///
+/// Preconditions:
+///   a[31] <= 127
 void GeScalarMultBase(ExtendedGroupElement h, Uint8List a) {
   var e = List<int>.filled(64, 0);
 
@@ -1236,16 +1236,16 @@ void GeScalarMultBase(ExtendedGroupElement h, Uint8List a) {
   }
 }
 
-// The scalars are GF(2^252 + 27742317777372353535851937790883648493).
+/// The scalars are GF(2^252 + 27742317777372353535851937790883648493).
 
-// Input:
-//   a[0]+256*a[1]+...+256^31*a[31] = a
-//   b[0]+256*b[1]+...+256^31*b[31] = b
-//   c[0]+256*c[1]+...+256^31*c[31] = c
-//
-// Output:
-//   s[0]+256*s[1]+...+256^31*s[31] = (ab+c) mod l
-//   where l = 2^252 + 27742317777372353535851937790883648493.
+/// Input:
+///   a[0]+256*a[1]+...+256^31*a[31] = a
+///   b[0]+256*b[1]+...+256^31*b[31] = b
+///   c[0]+256*c[1]+...+256^31*c[31] = c
+///
+/// Output:
+///   s[0]+256*s[1]+...+256^31*s[31] = (ab+c) mod l
+///   where l = 2^252 + 27742317777372353535851937790883648493.
 void ScMulAdd(Uint8List s, Uint8List a, Uint8List b, Uint8List c) {
   var a0 = 2097151 & load3(a.sublist(0, a.length));
   var a1 = 2097151 & (load4(a.sublist(2, a.length)) >> 5);
@@ -1760,12 +1760,12 @@ void ScMulAdd(Uint8List s, Uint8List a, Uint8List b, Uint8List c) {
   s[31] = s11 >> 17;
 }
 
-// Input:
-//   s[0]+256*s[1]+...+256^63*s[63] = s
-//
-// Output:
-//   s[0]+256*s[1]+...+256^31*s[31] = s mod l
-//   where l = 2^252 + 27742317777372353535851937790883648493.
+/// Input:
+///   s[0]+256*s[1]+...+256^63*s[63] = s
+///
+/// Output:
+///   s[0]+256*s[1]+...+256^31*s[31] = s mod l
+///   where l = 2^252 + 27742317777372353535851937790883648493.
 void ScReduce(Uint8List out, Uint8List s) {
   var s0 = 2097151 & load3(s.sublist(0, s.length));
   var s1 = 2097151 & (load4(s.sublist(2, s.length)) >> 5);
@@ -2084,15 +2084,15 @@ void ScReduce(Uint8List out, Uint8List s) {
   out[31] = s11 >> 17;
 }
 
-// order is the order of Curve25519 in little-endian form.
+/// order is the order of Curve25519 in little-endian form.
 var order = List<int>.from(
     [0x5812631a5cf5d3ed, 0x14def9dea2f79cd6, 0, 0x1000000000000000]);
 
-// ScMinimal returns true if the given scalar is less than the order of the
-// curve.
+/// ScMinimal returns true if the given scalar is less than the order of the
+/// curve.
 bool ScMinimal(Uint8List scalar) {
   for (var i = 3;; i--) {
-//    var v = binary.LittleEndian.Uint64(scalar[i*8:]);
+///    var v = binary.LittleEndian.Uint64(scalar[i*8:]);
     var v = Uint64(scalar.sublist(i * 8, scalar.length));
     if (v > order[i]) {
       return false;

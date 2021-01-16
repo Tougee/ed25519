@@ -7,13 +7,13 @@ import 'package:cryptography/cryptography.dart';
 import 'package:ed25519_edwards/src/edwards25519.dart';
 import 'package:ed25519_edwards/src/util.dart';
 
-// PublicKeySize is the size, in bytes, of public keys as used in this package.
+/// PublicKeySize is the size, in bytes, of public keys as used in this package.
 const PublicKeySize = 32;
-// PrivateKeySize is the size, in bytes, of private keys as used in this package.
+/// PrivateKeySize is the size, in bytes, of private keys as used in this package.
 const PrivateKeySize = 64;
-// SignatureSize is the size, in bytes, of signatures generated and verified by this package.
+/// SignatureSize is the size, in bytes, of signatures generated and verified by this package.
 const SignatureSize = 64;
-// SeedSize is the size, in bytes, of private key seeds. These are the private key representations used by RFC 8032.
+/// SeedSize is the size, in bytes, of private key seeds. These are the private key representations used by RFC 8032.
 const SeedSize = 32;
 
 class PublicKey {

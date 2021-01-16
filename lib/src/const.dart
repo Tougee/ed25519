@@ -13,7 +13,7 @@ var d = FieldElement.fromList([
   -12055116,
 ]);
 
-// d2 is 2*d.
+/// d2 is 2*d.
 var d2 = FieldElement.fromList([
   -21827239,
   -5839606,
@@ -27,7 +27,7 @@ var d2 = FieldElement.fromList([
   9444199,
 ]);
 
-// SqrtM1 is the square-root of -1 in the field.
+/// SqrtM1 is the square-root of -1 in the field.
 var SqrtM1 = FieldElement.fromList([
   -32595792,
   -7943725,
@@ -41,7 +41,7 @@ var SqrtM1 = FieldElement.fromList([
   11406482,
 ]);
 
-// A is a constant in the Montgomery-form of curve25519.
+/// A is a constant in the Montgomery-form of curve25519.
 var A = FieldElement.fromList([
   486662,
   0,
@@ -55,8 +55,8 @@ var A = FieldElement.fromList([
   0,
 ]);
 
-// bi contains precomputed multiples of the base-point. See the Ed25519 paper
-// for a discussion about how these values are used.
+/// bi contains precomputed multiples of the base-point. See the Ed25519 paper
+/// for a discussion about how these values are used.
 var bi = List.from([
   PreComputedGroupElement.fromList(
     FieldElement.fromList([
@@ -364,8 +364,8 @@ var bi = List.from([
   )
 ]);
 
-// base contains precomputed multiples of the base-point. See the Ed25519 paper
-// for a discussion about how these values are used.
+/// base contains precomputed multiples of the base-point. See the Ed25519 paper
+/// for a discussion about how these values are used.
 var base = List.from([
   List.from([
     PreComputedGroupElement.fromList(
