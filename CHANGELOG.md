@@ -1,3 +1,7 @@
+### 0.1.0-nullsafety.0
+- Null safety migration
+- Use 'crypto' instead of 'cryptography'
+
 ### 0.0.5
 Refine doc comments
 

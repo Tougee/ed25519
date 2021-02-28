@@ -1,10 +1,10 @@
 name: ed25519_edwards
 description: A Dart implementation of ed25519, inspired by Go cryptography libraries.
-version: 0.0.5
+version: 0.1.0-nullsafety.0
 homepage: https://github.com/Tougee/ed25519
 
 environment:
-  sdk: '>=2.11.0 <3.0.0'
+  sdk: '>=2.12.0-259.16.beta <3.0.0'
 
 dependencies:
   collection: ^1.14.13
@@ -13,4 +13,7 @@ dependencies:
 dev_dependencies:
   pedantic: ^1.10.0
   test: ^1.16.4
-  hex: ^0.1.2
+
+  # https://github.com/stevenroose/dart-hex/pull/3
+  hex:
+    git: git@github.com:ilap/dart-hex.git

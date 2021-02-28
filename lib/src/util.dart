@@ -8,7 +8,7 @@ void arrayCopy(List src, int srcPos, List dest, int destPos, int length) {
 
 final _defaultSecureRandom = Random.secure();
 
-void fillBytesWithSecureRandomNumbers(Uint8List bytes, {Random random}) {
+void fillBytesWithSecureRandomNumbers(Uint8List bytes, {Random? random}) {
   random ??= _defaultSecureRandom;
   for (var i = 0; i < bytes.length; i++) {
     bytes[i] = random.nextInt(256);

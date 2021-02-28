@@ -18,10 +18,13 @@ import 'package:ed25519_edwards/src/util.dart';
 
 /// PublicKeySize is the size, in bytes, of public keys as used in this package.
 const PublicKeySize = 32;
+
 /// PrivateKeySize is the size, in bytes, of private keys as used in this package.
 const PrivateKeySize = 64;
+
 /// SignatureSize is the size, in bytes, of signatures generated and verified by this package.
 const SignatureSize = 64;
+
 /// SeedSize is the size, in bytes, of private key seeds. These are the private key representations used by RFC 8032.
 const SeedSize = 32;
 
@@ -41,9 +44,9 @@ class PrivateKey {
 
 /// KeyPair is the type of Ed25519 public/private key pair.
 class KeyPair {
-  final PrivateKey privateKey;
+  final PrivateKey? privateKey;
 
-  final PublicKey publicKey;
+  final PublicKey? publicKey;
 
   KeyPair({this.privateKey, this.publicKey});
 
@@ -68,7 +71,7 @@ PublicKey public(PrivateKey privateKey) {
 /// in this package.
 Uint8List seed(PrivateKey privateKey) {
   var seed = privateKey.bytes.sublist(0, SeedSize);
-  return seed;
+  return seed as Uint8List;
 }
 
 /// GenerateKey generates a public/private key pair using entropy from secure random.
@@ -80,9 +83,9 @@ KeyPair generateKey() {
   return KeyPair(privateKey: privateKey, publicKey: PublicKey(publicKey));
 }
 
-/// NewKeyFromSeed calculates a private key from a seed. It will throw 
-/// ArgumentError if seed.length is not SeedSize. 
-/// This function is provided for interoperability with RFC 8032. 
+/// NewKeyFromSeed calculates a private key from a seed. It will throw
+/// ArgumentError if seed.length is not SeedSize.
+/// This function is provided for interoperability with RFC 8032.
 /// RFC 8032's private keys correspond to seeds in this package.
 PrivateKey newKeyFromSeed(Uint8List seed) {
   if (seed.length != SeedSize) {
@@ -96,7 +99,7 @@ PrivateKey newKeyFromSeed(Uint8List seed) {
 
   var A = ExtendedGroupElement();
   var hBytes = digest.sublist(0);
-  GeScalarMultBase(A, hBytes);
+  GeScalarMultBase(A, hBytes as Uint8List);
   var publicKeyBytes = Uint8List(32);
   A.ToBytes(publicKeyBytes);
 
@@ -128,7 +131,7 @@ Uint8List sign(PrivateKey privateKey, Uint8List message) {
   var messageDigest = output.events.single.bytes;
 
   var messageDigestReduced = Uint8List(32);
-  ScReduce(messageDigestReduced, messageDigest);
+  ScReduce(messageDigestReduced, messageDigest as Uint8List);
   var R = ExtendedGroupElement();
   GeScalarMultBase(R, messageDigestReduced);
 
@@ -143,10 +146,11 @@ Uint8List sign(PrivateKey privateKey, Uint8List message) {
   input.close();
   var hramDigest = output.events.single.bytes;
   var hramDigestReduced = Uint8List(32);
-  ScReduce(hramDigestReduced, hramDigest);
+  ScReduce(hramDigestReduced, hramDigest as Uint8List);
 
   var s = Uint8List(32);
-  ScMulAdd(s, hramDigestReduced, expandedSecretKey, messageDigestReduced);
+  ScMulAdd(s, hramDigestReduced, expandedSecretKey as Uint8List,
+      messageDigestReduced);
 
   var signature = Uint8List(SignatureSize);
   arrayCopy(encodedR, 0, signature, 0, 32);
@@ -183,7 +187,7 @@ bool verify(PublicKey publicKey, Uint8List message, Uint8List sig) {
   var digest = output.events.single.bytes;
 
   var hReduced = Uint8List(32);
-  ScReduce(hReduced, digest);
+  ScReduce(hReduced, digest as Uint8List);
 
   var R = ProjectiveGroupElement();
   var s = sig.sublist(32);

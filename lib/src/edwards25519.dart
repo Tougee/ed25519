@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'const.dart';
 
 class FieldElement {
-  List<int> innerList;
+  late List<int> innerList;
   FieldElement() {
     innerList = List<int>.generate(10, (index) => 0);
   }
@@ -542,7 +542,7 @@ void FeMul(FieldElement h, f, g) {
   FeCombine(h, h0, h1, h2, h3, h4, h5, h6, h7, h8, h9);
 }
 
-List<int> feSquare(f) {
+List<int?> feSquare(f) {
   var f0 = f[0];
   var f1 = f[1];
   var f2 = f[2];
@@ -599,7 +599,18 @@ List<int> feSquare(f) {
       f0_2 * f8 + f1_2 * f7_2 + f2_2 * f6 + f3_2 * f5_2 + f4 * f4 + f9 * f9_38;
   var h9 = f0_2 * f9 + f1_2 * f8 + f2_2 * f7 + f3_2 * f6 + f4_2 * f5;
 
-  return [h0, h1, h2, h3, h4, h5, h6, h7, h8, h9];
+  return [
+    h0,
+    h1 as int?,
+    h2 as int?,
+    h3 as int?,
+    h4 as int?,
+    h5 as int?,
+    h6 as int?,
+    h7 as int?,
+    h8 as int?,
+    h9 as int
+  ];
 }
 
 /// FeSquare calculates h = f*f. Can overlap h with f.
@@ -611,16 +622,16 @@ List<int> feSquare(f) {
 ///    |h| bounded by 1.1*2^25,1.1*2^24,1.1*2^25,1.1*2^24,etc.
 void FeSquare(FieldElement h, FieldElement f) {
   var fs = feSquare(f);
-  var h0 = fs[0];
-  var h1 = fs[1];
-  var h2 = fs[2];
-  var h3 = fs[3];
-  var h4 = fs[4];
-  var h5 = fs[5];
-  var h6 = fs[6];
-  var h7 = fs[7];
-  var h8 = fs[8];
-  var h9 = fs[9];
+  var h0 = fs[0]!;
+  var h1 = fs[1]!;
+  var h2 = fs[2]!;
+  var h3 = fs[3]!;
+  var h4 = fs[4]!;
+  var h5 = fs[5]!;
+  var h6 = fs[6]!;
+  var h7 = fs[7]!;
+  var h8 = fs[8]!;
+  var h9 = fs[9]!;
   FeCombine(h, h0, h1, h2, h3, h4, h5, h6, h7, h8, h9);
 }
 
@@ -636,16 +647,16 @@ void FeSquare(FieldElement h, FieldElement f) {
 /// See fe_mul.c for discussion of implementation strategy.
 void FeSquare2(FieldElement h, FieldElement f) {
   var fs = feSquare(f);
-  var h0 = fs[0];
-  var h1 = fs[1];
-  var h2 = fs[2];
-  var h3 = fs[3];
-  var h4 = fs[4];
-  var h5 = fs[5];
-  var h6 = fs[6];
-  var h7 = fs[7];
-  var h8 = fs[8];
-  var h9 = fs[9];
+  var h0 = fs[0]!;
+  var h1 = fs[1]!;
+  var h2 = fs[2]!;
+  var h3 = fs[3]!;
+  var h4 = fs[4]!;
+  var h5 = fs[5]!;
+  var h6 = fs[6]!;
+  var h7 = fs[7]!;
+  var h8 = fs[8]!;
+  var h9 = fs[9]!;
 
   h0 += h0;
   h1 += h1;
@@ -2091,7 +2102,7 @@ var order = List<int>.from(
 /// curve.
 bool ScMinimal(Uint8List scalar) {
   for (var i = 3;; i--) {
-///    var v = binary.LittleEndian.Uint64(scalar[i*8:]);
+    ///    var v = binary.LittleEndian.Uint64(scalar[i*8:]);
     var v = Uint64(scalar.sublist(i * 8, scalar.length));
     if (v > order[i]) {
       return false;
