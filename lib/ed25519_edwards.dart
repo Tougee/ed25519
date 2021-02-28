@@ -10,9 +10,9 @@
 library edwards25519;
 
 import 'dart:typed_data';
-
+import 'package:convert/convert.dart';
 import 'package:collection/collection.dart';
-import 'package:cryptography/cryptography.dart';
+import 'package:crypto/crypto.dart';
 import 'package:ed25519_edwards/src/edwards25519.dart';
 import 'package:ed25519_edwards/src/util.dart';
 
@@ -88,7 +88,7 @@ PrivateKey newKeyFromSeed(Uint8List seed) {
   if (seed.length != SeedSize) {
     throw ArgumentError('ed25519: bad seed length ${seed.length}');
   }
-  var h = sha512.hashSync(seed);
+  var h = sha512.convert(seed);
   var digest = h.bytes.sublist(0, 32);
   digest[0] &= 248;
   digest[31] &= 127;
@@ -113,20 +113,19 @@ Uint8List sign(PrivateKey privateKey, Uint8List message) {
     throw ArgumentError(
         'ed25519: bad privateKey length ${privateKey.bytes.length}');
   }
-  var h = sha512.newSink();
-  h.add(privateKey.bytes.sublist(0, 32));
-  h.close();
-  var digest1 = h.hash.bytes;
+  var h = sha512.convert(privateKey.bytes.sublist(0, 32));
+  var digest1 = h.bytes;
   var expandedSecretKey = digest1.sublist(0, 32);
   expandedSecretKey[0] &= 248;
   expandedSecretKey[31] &= 63;
   expandedSecretKey[31] |= 64;
 
-  h = sha512.newSink();
-  h.add(digest1.sublist(32));
-  h.add(message);
-  h.close();
-  var messageDigest = h.hash.bytes;
+  var output = AccumulatorSink<Digest>();
+  var input = sha512.startChunkedConversion(output);
+  input.add(digest1.sublist(32));
+  input.add(message);
+  input.close();
+  var messageDigest = output.events.single.bytes;
 
   var messageDigestReduced = Uint8List(32);
   ScReduce(messageDigestReduced, messageDigest);
@@ -136,12 +135,13 @@ Uint8List sign(PrivateKey privateKey, Uint8List message) {
   var encodedR = Uint8List(32);
   R.ToBytes(encodedR);
 
-  h = sha512.newSink();
-  h.add(encodedR);
-  h.add(privateKey.bytes.sublist(32));
-  h.add(message);
-  h.close();
-  var hramDigest = h.hash.bytes;
+  output = AccumulatorSink<Digest>();
+  input = sha512.startChunkedConversion(output);
+  input.add(encodedR);
+  input.add(privateKey.bytes.sublist(32));
+  input.add(message);
+  input.close();
+  var hramDigest = output.events.single.bytes;
   var hramDigestReduced = Uint8List(32);
   ScReduce(hramDigestReduced, hramDigest);
 
@@ -174,12 +174,13 @@ bool verify(PublicKey publicKey, Uint8List message, Uint8List sig) {
   FeNeg(A.X, A.X);
   FeNeg(A.T, A.T);
 
-  var h = sha512.newSink();
-  h.add(sig.sublist(0, 32));
-  h.add(publicKeyBytes);
-  h.add(message);
-  h.close();
-  var digest = h.hash.bytes;
+  var output = AccumulatorSink<Digest>();
+  var input = sha512.startChunkedConversion(output);
+  input.add(sig.sublist(0, 32));
+  input.add(publicKeyBytes);
+  input.add(message);
+  input.close();
+  var digest = output.events.single.bytes;
 
   var hReduced = Uint8List(32);
   ScReduce(hReduced, digest);

@@ -1285,7 +1285,7 @@ void ScMulAdd(Uint8List s, Uint8List a, Uint8List b, Uint8List c) {
   var c10 = 2097151 & (load3(c.sublist(26, c.length)) >> 2);
   var c11 = (load4(c.sublist(28, c.length)) >> 7);
 
-  var carry = List<int>(23);
+  var carry = List<int>.filled(23, 0);
 
   var s0 = c0 + a0 * b0;
   var s1 = c1 + a0 * b1 + a1 * b0;
@@ -1839,7 +1839,7 @@ void ScReduce(Uint8List out, Uint8List s) {
   s11 -= s18 * 683901;
   s18 = 0;
 
-  var carry = List<int>(64);
+  var carry = List<int>.filled(64, 0);
 
   carry[6] = (s6 + (1 << 20)) >> 21;
   s7 += carry[6];
