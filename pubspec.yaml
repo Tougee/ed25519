@@ -1,14 +1,15 @@
 name: ed25519_edwards
 description: A Dart implementation of ed25519, inspired by Go cryptography libraries.
-version: 0.1.0-nullsafety.0
+version: 0.1.0-nullsafety.1
 homepage: https://github.com/Tougee/ed25519
 
 environment:
-  sdk: '>=2.12.0-259.16.beta <3.0.0'
+  sdk: '>=2.12.0-0 <3.0.0'
 
 dependencies:
-  collection: ^1.14.13
-  crypto: ^3.0.0-nullsafety.0
+  collection: ^1.15.0
+  crypto: ^3.0.0
+  convert: ^3.0.0
 
 dev_dependencies:
   pedantic: ^1.10.0
