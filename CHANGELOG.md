@@ -1,3 +1,6 @@
+### 0.1.0
+- Nothing changed, just release
+
 ### 0.1.0-nullsafety.1
 - Upgrade dependencies
 
