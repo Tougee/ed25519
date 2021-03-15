@@ -3,6 +3,10 @@ import 'dart:typed_data';
 
 import 'package:ed25519_edwards/ed25519_edwards.dart' as ed;
 
+void main() {
+  signAndVerify();
+}
+
 void signAndVerify() {
   var keyPair = ed.generateKey();
   var privateKey = keyPair.privateKey!;

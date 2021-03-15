@@ -14,7 +14,4 @@ dependencies:
 dev_dependencies:
   pedantic: ^1.10.0
   test: ^1.16.4
-
-  # https://github.com/stevenroose/dart-hex/pull/3
-  hex:
-    git: git@github.com:ilap/dart-hex.git
+  hex: ^0.2.0
