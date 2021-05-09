@@ -25,6 +25,7 @@ void main() {
   /// sign.input.gz is a selection of test cases from
   /// https://ed25519.cr.yp.to/python/sign.input
   test('test sign.input.gz', () async {
+    final stopwatch = Stopwatch()..start();
     var path = 'test/testdata/sign.input.gz';
     var index = 0;
     await File(path)
@@ -64,5 +65,6 @@ void main() {
       var seed = ed.seed(priv2);
       assert(ListEquality().equals(seed, privkey.sublist(0, 32)));
     });
+    print('test sign,input.gz cost: ${stopwatch.elapsed}');
   });
 }
