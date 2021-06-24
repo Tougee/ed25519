@@ -1,3 +1,6 @@
+### 0.2.0
+- Fix incompatibility's with flutter web
+
 ### 0.1.0
 - Nothing changed, just release
 

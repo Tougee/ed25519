@@ -1,4 +1,4 @@
-A Dart implementation of ed25519, inspired by [Go cryptography libraries](https://github.com/golang/crypto/tree/master/ed25519)
+Dart port of ed25519 from [Golang ed25519](https://github.com/golang/crypto/tree/master/ed25519)
 
 Usage
 ```dart
