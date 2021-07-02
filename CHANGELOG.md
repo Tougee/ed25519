@@ -1,3 +1,6 @@
+### 0.2.1
+- Add benchmark
+
 ### 0.2.0
 - Fix incompatibility's with flutter web
 
