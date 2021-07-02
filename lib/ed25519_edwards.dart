@@ -44,11 +44,11 @@ class PrivateKey {
 
 /// KeyPair is the type of Ed25519 public/private key pair.
 class KeyPair {
-  final PrivateKey? privateKey;
+  final PrivateKey privateKey;
 
-  final PublicKey? publicKey;
+  final PublicKey publicKey;
 
-  KeyPair({this.privateKey, this.publicKey});
+  KeyPair(this.privateKey, this.publicKey);
 
   @override
   int get hashCode => publicKey.hashCode;
@@ -80,7 +80,7 @@ KeyPair generateKey() {
   fillBytesWithSecureRandomNumbers(seed);
   var privateKey = newKeyFromSeed(seed);
   var publicKey = privateKey.bytes.sublist(32, PrivateKeySize);
-  return KeyPair(privateKey: privateKey, publicKey: PublicKey(publicKey));
+  return KeyPair(privateKey, PublicKey(publicKey));
 }
 
 /// NewKeyFromSeed calculates a private key from a seed. It will throw
