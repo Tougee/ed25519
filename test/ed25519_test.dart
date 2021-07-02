@@ -10,8 +10,8 @@ import 'package:test/test.dart';
 void main() {
   test('testSignVerify', () {
     var keyPair = ed.generateKey();
-    var privateKey = keyPair.privateKey!;
-    var publicKey = keyPair.publicKey!;
+    var privateKey = keyPair.privateKey;
+    var publicKey = keyPair.publicKey;
     var message = utf8.encode('test message');
     var sig = ed.sign(privateKey, message as Uint8List);
     var result = ed.verify(publicKey, message, sig);
