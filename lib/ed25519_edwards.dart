@@ -60,7 +60,7 @@ class KeyPair {
       privateKey == other.privateKey;
 }
 
-// Public returns the PublicKey corresponding to priv.
+/// public returns the PublicKey corresponding to PrivateKey.
 PublicKey public(PrivateKey privateKey) {
   var publicKey = privateKey.bytes.sublist(32, 32 + PublicKeySize);
   return PublicKey(publicKey);
