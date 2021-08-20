@@ -2,6 +2,8 @@
 
 Dart port of ed25519 from [Golang ed25519](https://github.com/golang/crypto/tree/master/ed25519)
 
+This branch of code represents a capability used by dart2js. The benchmark shows that it performs about 22% slower than the [default implementation](https://github.com/Tougee/ed25519) when signing, and 30% to 60% slower when verifying.
+
 ## Usage
 ```dart
 
@@ -63,6 +65,16 @@ Simulate from [pinenacl-dart Benchmark](https://github.com/ilap/pinenacl-dart/bl
 
 MacBook Pro (16-inch, 2019), macOS Big Sur, with 2.4GHz i9 32GB
 
+#### JS (Dart2JS) benchmark
+> $ pub get
+> $ pub run benchmark/ed25519_benchmark.dart -p chrome
+
+| type |    rate    | iterations    |   time  | data throughput |
+|----------|:----------:|---------------|:-------:|:---------------:|
+| Ed25519 - sign | 37.30 MB/s | 187 iterations | 5013 ms | 187.00 MB |
+| Ed25519 - verify | 35.63 MB/s | 179 iterations | 5023 ms | 179.00 MB |
+
+
 #### JiT (Dart VM) Benchmark
 
 
@@ -71,8 +83,8 @@ MacBook Pro (16-inch, 2019), macOS Big Sur, with 2.4GHz i9 32GB
 
 | type |    rate    | iterations    |   time  | data throughput |
 |----------|:----------:|---------------|:-------:|:---------------:|
-| Ed25519 - sign | 47.10 MB/s | 236 iterations | 5010 ms | 236.00 MB |
-| Ed25519 - verify | 99.31 MB/s | 497 iterations | 5004 ms | 497.00 MB |
+| Ed25519 - sign | 36.36 MB/s | 182 iterations | 5005 ms | 182.00 MB |
+| Ed25519 - verify | 36.69 MB/s | 184 iterations | 5014 ms | 184.00 MB |
 
 #### AoT (native binary)
 
@@ -82,8 +94,8 @@ MacBook Pro (16-inch, 2019), macOS Big Sur, with 2.4GHz i9 32GB
 
 | type |    rate    | iterations    |   time  | data throughput |
 |----------|:----------:|---------------|:-------:|:---------------:|
-| Ed25519 - sign | 21.96 MB/s | 110 iterations | 5008 ms | 110.00 MB |
-| Ed25519 - verify | 43.10 MB/s | 216 iterations | 5012 ms | 216.00 MB |
+| Ed25519 - sign | 18.57 MB/s | 93 iterations | 5009 ms | 93.00 MB |
+| Ed25519 - verify | 22.42 MB/s | 113 iterations | 5039 ms | 113.00 MB |
 
 
 [Pub package](https://pub.dev/packages/ed25519_edwards)
