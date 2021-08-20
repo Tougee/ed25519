@@ -2,6 +2,9 @@
 
 Dart port of ed25519 from [Golang ed25519](https://github.com/golang/crypto/tree/master/ed25519)
 
+
+[Pub package](https://pub.dev/packages/ed25519_edwards)
+
 ## Usage
 ```dart
 
@@ -21,6 +24,8 @@ import 'package:ed25519_edwards/ed25519_edwards.dart' as ed;
         assert(wrongResult == false);
     }
 ```
+
+For **dart2js** or **Flutter web** usage, check [here](https://github.com/Tougee/ed25519/tree/feature/bigint).
 
 ## APIs
 | Ed25519 |
@@ -84,6 +89,3 @@ MacBook Pro (16-inch, 2019), macOS Big Sur, with 2.4GHz i9 32GB
 |----------|:----------:|---------------|:-------:|:---------------:|
 | Ed25519 - sign | 21.96 MB/s | 110 iterations | 5008 ms | 110.00 MB |
 | Ed25519 - verify | 43.10 MB/s | 216 iterations | 5012 ms | 216.00 MB |
-
-
-[Pub package](https://pub.dev/packages/ed25519_edwards)
