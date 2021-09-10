@@ -1192,11 +1192,10 @@ void selectPoint(PreComputedGroupElement t, int pos, Number b) {
 void GeScalarMultBase(ExtendedGroupElement h, Uint8List a) {
   var e = List<Number>.filled(64, Number.zero);
 
-  // TODO: More efficient
   for (var i = 0; i < a.length; i++) {
     var v = a[i];
-    e[2 * i] = Number(v) & Number(15);
-    e[2 * i + 1] = Number((v >> 4)) & Number(15);
+    e[2 * i] = Number(v) & Number.v15;
+    e[2 * i + 1] = Number((v >> 4)) & Number.v15;
   }
 
   // each e[i] is between 0 and 15 and e[63] is between 0 and 7.

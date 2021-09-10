@@ -37,6 +37,7 @@ abstract class Number {
   static Number one = Number(1);
   static Number two = Number(2);
   static Number v8 = Number(8);
+  static Number v15 = Number(15);
   static Number v19 = Number(19);
   static Number v24 = Number(24);
   static Number v25 = Number(25);
