@@ -1,4 +1,3 @@
-
 import 'package:ed25519_edwards/src/number/number.dart';
 import 'package:fixnum/fixnum.dart';
 

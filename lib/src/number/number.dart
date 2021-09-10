@@ -2,7 +2,7 @@ import 'package:ed25519_edwards/src/number/stub.dart'
 // ignore: uri_does_not_exist
     if (dart.library.io) 'package:ed25519_edwards/src/number/int.dart'
 // ignore: uri_does_not_exist
-    if (dart.library.html) 'package:ed25519_edwards/src/number/bigint.dart';
+    if (dart.library.html) 'package:ed25519_edwards/src/number/int64.dart';
 
 abstract class Number {
   dynamic get val;
