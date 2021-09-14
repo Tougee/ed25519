@@ -70,14 +70,13 @@ MacBook Pro (16-inch, 2019), macOS Big Sur, with 2.4GHz i9 32GB
 
 #### JiT (Dart VM) Benchmark
 
-
 > $ pub get  
 > $ pub run benchmark/ed25519_benchmark.dart
 
 | type |    rate    | iterations    |   time  | data throughput |
 |----------|:----------:|---------------|:-------:|:---------------:|
-| Ed25519 - sign | 47.10 MB/s | 236 iterations | 5010 ms | 236.00 MB |
-| Ed25519 - verify | 99.31 MB/s | 497 iterations | 5004 ms | 497.00 MB |
+| Ed25519 - sign | 50.54 MB/s | 254 iterations | 5025 ms | 254.00 MB |
+| Ed25519 - verify | 97.38 MB/s | 487 iterations | 5001 ms | 487.00 MB |
 
 #### AoT (native binary)
 
@@ -87,5 +86,15 @@ MacBook Pro (16-inch, 2019), macOS Big Sur, with 2.4GHz i9 32GB
 
 | type |    rate    | iterations    |   time  | data throughput |
 |----------|:----------:|---------------|:-------:|:---------------:|
-| Ed25519 - sign | 21.96 MB/s | 110 iterations | 5008 ms | 110.00 MB |
-| Ed25519 - verify | 43.10 MB/s | 216 iterations | 5012 ms | 216.00 MB |
+| Ed25519 - sign | 21.64 MB/s | 109 iterations | 5036 ms | 109.00 MB |
+| Ed25519 - verify | 37.20 MB/s | 187 iterations | 5027 ms | 187.00 MB |
+
+#### JS (Dart2JS) benchmark
+
+> $ pub get  
+> $ pub run benchmark/ed25519_benchmark.dart -p chrome
+
+| type |    rate    | iterations    |   time  | data throughput |
+|----------|:----------:|---------------|:-------:|:---------------:|
+| Ed25519 - sign | 50.17 MB/s | 251 iterations | 5002 ms | 251.00 MB |
+| Ed25519 - verify | 95.21 MB/s | 477 iterations | 5009 ms | 477.00 MB |
