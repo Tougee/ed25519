@@ -1,6 +1,6 @@
 name: ed25519_edwards
 description: Dart port of ed25519 from Go Cryptography ed25519
-version: 0.2.1
+version: 0.3.0
 homepage: https://github.com/Tougee/ed25519
 
 environment:
