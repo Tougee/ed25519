@@ -1,21 +1,23 @@
 import 'dart:typed_data';
 
+import 'package:ed25519_edwards/src/number/number.dart';
+
 import 'const.dart';
 
 class FieldElement {
-  late List<int> innerList;
+  late List<Number> innerList;
   FieldElement() {
-    innerList = List<int>.generate(10, (index) => 0);
+    innerList = List<Number>.generate(10, (index) => Number.zero);
   }
   FieldElement.fromList(List<int> list) {
-    innerList = list;
+    innerList = list.map((e) => Number(e)).toList();
   }
 
-  int operator [](int index) {
+  Number operator [](int index) {
     return innerList[index];
   }
 
-  void operator []=(int index, int value) {
+  void operator []=(int index, Number value) {
     innerList[index] = value;
   }
 
@@ -39,7 +41,7 @@ void FeZero(FieldElement fe) {
 
 void FeOne(FieldElement fe) {
   FeZero(fe);
-  fe[0] = 1;
+  fe[0] = Number.one;
 }
 
 void FeAdd(FieldElement dst, FieldElement a, FieldElement b) {
@@ -76,7 +78,7 @@ void FeCopy(FieldElement dst, FieldElement src) {
 /// replace (f,g) with (f,g) if b == 0.
 ///
 /// Preconditions: b in {0,1}.
-void FeCMove(FieldElement f, FieldElement g, int b) {
+void FeCMove(FieldElement f, FieldElement g, Number b) {
   b = -b;
   f[0] ^= b & (f[0] ^ g[0]);
   f[1] ^= b & (f[1] ^ g[1]);
@@ -90,21 +92,21 @@ void FeCMove(FieldElement f, FieldElement g, int b) {
   f[9] ^= b & (f[9] ^ g[9]);
 }
 
-int load3(Uint8List input) {
+Number load3(Uint8List input) {
   int r;
   r = input[0];
   r |= input[1] << 8;
   r |= input[2] << 16;
-  return r;
+  return Number(r);
 }
 
-int load4(Uint8List input) {
+Number load4(Uint8List input) {
   int r;
   r = input[0];
   r |= input[1] << 8;
   r |= input[2] << 16;
   r |= input[3] << 24;
-  return r;
+  return Number(r);
 }
 
 void FeFromBytes(FieldElement dst, Uint8List src) {
@@ -117,7 +119,7 @@ void FeFromBytes(FieldElement dst, Uint8List src) {
   var h6 = load3(src.sublist(20, src.length)) << 7;
   var h7 = load3(src.sublist(23, src.length)) << 5;
   var h8 = load3(src.sublist(26, src.length)) << 4;
-  var h9 = (load3(src.sublist(29, src.length)) & 8388607) << 2;
+  var h9 = (load3(src.sublist(29, src.length)) & Number(8388607)) << 2;
 
   FeCombine(dst, h0, h1, h2, h3, h4, h5, h6, h7, h8, h9);
 }
@@ -146,9 +148,9 @@ void FeFromBytes(FieldElement dst, Uint8List src) {
 ///   Have q+2^(-255)x = 2^(-255)(h + 19 2^(-25) h9 + 2^(-1))
 ///   so floor(2^(-255)(h + 19 2^(-25) h9 + 2^(-1))) = q.
 void FeToBytes(Uint8List s, FieldElement h) {
-  var carry = List<int>.filled(10, 0);
+  var carry = List<Number>.filled(10, Number.zero);
 
-  var q = (19 * h[9] + (1 << 24)) >> 25;
+  var q = (Number.v19 * h[9] + (Number.one << 24)) >> 25;
   q = (h[0] + q) >> 26;
   q = (h[1] + q) >> 25;
   q = (h[2] + q) >> 26;
@@ -161,7 +163,7 @@ void FeToBytes(Uint8List s, FieldElement h) {
   q = (h[9] + q) >> 25;
 
   // Goal: Output h-(2^255-19)q, which is between 0 and 2^255-20.
-  h[0] += 19 * q;
+  h[0] += Number.v19 * q;
   // Goal: Output h-2^255 q, which is between 0 and 2^255-20.
 
   carry[0] = h[0] >> 26;
@@ -200,38 +202,38 @@ void FeToBytes(Uint8List s, FieldElement h) {
   // evidently 2^255 h10-2^255 q = 0.
   // Goal: Output h[0]+...+2^230 h[9].
 
-  s[0] = h[0] >> 0;
-  s[1] = h[0] >> 8;
-  s[2] = h[0] >> 16;
-  s[3] = (h[0] >> 24) | (h[1] << 2);
-  s[4] = h[1] >> 6;
-  s[5] = h[1] >> 14;
-  s[6] = (h[1] >> 22) | (h[2] << 3);
-  s[7] = h[2] >> 5;
-  s[8] = h[2] >> 13;
-  s[9] = (h[2] >> 21) | (h[3] << 5);
-  s[10] = h[3] >> 3;
-  s[11] = h[3] >> 11;
-  s[12] = (h[3] >> 19) | (h[4] << 6);
-  s[13] = h[4] >> 2;
-  s[14] = h[4] >> 10;
-  s[15] = h[4] >> 18;
-  s[16] = h[5] >> 0;
-  s[17] = h[5] >> 8;
-  s[18] = h[5] >> 16;
-  s[19] = (h[5] >> 24) | (h[6] << 1);
-  s[20] = h[6] >> 7;
-  s[21] = h[6] >> 15;
-  s[22] = (h[6] >> 23) | (h[7] << 3);
-  s[23] = h[7] >> 5;
-  s[24] = h[7] >> 13;
-  s[25] = (h[7] >> 21) | (h[8] << 4);
-  s[26] = h[8] >> 4;
-  s[27] = h[8] >> 12;
-  s[28] = (h[8] >> 20) | (h[9] << 6);
-  s[29] = h[9] >> 2;
-  s[30] = h[9] >> 10;
-  s[31] = h[9] >> 18;
+  s[0] = (h[0] >> 0).intValue;
+  s[1] = (h[0] >> 8).intValue;
+  s[2] = (h[0] >> 16).intValue;
+  s[3] = ((h[0] >> 24) | (h[1] << 2)).intValue;
+  s[4] = (h[1] >> 6).intValue;
+  s[5] = (h[1] >> 14).intValue;
+  s[6] = ((h[1] >> 22) | (h[2] << 3)).intValue;
+  s[7] = (h[2] >> 5).intValue;
+  s[8] = (h[2] >> 13).intValue;
+  s[9] = ((h[2] >> 21) | (h[3] << 5)).intValue;
+  s[10] = (h[3] >> 3).intValue;
+  s[11] = (h[3] >> 11).intValue;
+  s[12] = ((h[3] >> 19) | (h[4] << 6)).intValue;
+  s[13] = (h[4] >> 2).intValue;
+  s[14] = (h[4] >> 10).intValue;
+  s[15] = (h[4] >> 18).intValue;
+  s[16] = (h[5] >> 0).intValue;
+  s[17] = (h[5] >> 8).intValue;
+  s[18] = (h[5] >> 16).intValue;
+  s[19] = ((h[5] >> 24) | (h[6] << 1)).intValue;
+  s[20] = (h[6] >> 7).intValue;
+  s[21] = (h[6] >> 15).intValue;
+  s[22] = ((h[6] >> 23) | (h[7] << 3)).intValue;
+  s[23] = (h[7] >> 5).intValue;
+  s[24] = (h[7] >> 13).intValue;
+  s[25] = ((h[7] >> 21) | (h[8] << 4)).intValue;
+  s[26] = (h[8] >> 4).intValue;
+  s[27] = (h[8] >> 12).intValue;
+  s[28] = ((h[8] >> 20) | (h[9] << 6)).intValue;
+  s[29] = (h[9] >> 2).intValue;
+  s[30] = (h[9] >> 10).intValue;
+  s[31] = (h[9] >> 18).intValue;
 }
 
 int FeIsNegative(FieldElement f) {
@@ -273,18 +275,18 @@ void FeNeg(FieldElement h, FieldElement f) {
   h[9] = -f[9];
 }
 
-void FeCombine(FieldElement h, int h0, int h1, int h2, int h3, int h4, int h5,
-    int h6, int h7, int h8, int h9) {
-  var c0 = 0;
-  var c1 = 0;
-  var c2 = 0;
-  var c3 = 0;
-  var c4 = 0;
-  var c5 = 0;
-  var c6 = 0;
-  var c7 = 0;
-  var c8 = 0;
-  var c9 = 0;
+void FeCombine(FieldElement h, Number h0, Number h1, Number h2, Number h3,
+    Number h4, Number h5, Number h6, Number h7, Number h8, Number h9) {
+  var c0 = Number.zero;
+  var c1 = Number.zero;
+  var c2 = Number.zero;
+  var c3 = Number.zero;
+  var c4 = Number.zero;
+  var c5 = Number.zero;
+  var c6 = Number.zero;
+  var c7 = Number.zero;
+  var c8 = Number.zero;
+  var c9 = Number.zero;
 
   /*
       |h0| <= (1.1*1.1*2^52*(1+19+19+19+19)+1.1*1.1*2^50*(38+38+38+38+38))
@@ -293,10 +295,10 @@ void FeCombine(FieldElement h, int h0, int h1, int h2, int h3, int h4, int h5,
         i.e. |h1| <= 1.5*2^58; narrower ranges for h3, h5, h7, h9
     */
 
-  c0 = (h0 + (1 << 25)) >> 26;
+  c0 = (h0 + (Number.one << 25)) >> 26;
   h1 += c0;
   h0 -= c0 << 26;
-  c4 = (h4 + (1 << 25)) >> 26;
+  c4 = (h4 + (Number.one << 25)) >> 26;
   h5 += c4;
   h4 -= c4 << 26;
   /* |h0| <= 2^25 */
@@ -304,10 +306,10 @@ void FeCombine(FieldElement h, int h0, int h1, int h2, int h3, int h4, int h5,
   /* |h1| <= 1.51*2^58 */
   /* |h5| <= 1.51*2^58 */
 
-  c1 = (h1 + (1 << 24)) >> 25;
+  c1 = (h1 + (Number.one << 24)) >> 25;
   h2 += c1;
   h1 -= c1 << 25;
-  c5 = (h5 + (1 << 24)) >> 25;
+  c5 = (h5 + (Number.one << 24)) >> 25;
   h6 += c5;
   h5 -= c5 << 25;
   /* |h1| <= 2^24; from now on fits into int32 */
@@ -315,10 +317,10 @@ void FeCombine(FieldElement h, int h0, int h1, int h2, int h3, int h4, int h5,
   /* |h2| <= 1.21*2^59 */
   /* |h6| <= 1.21*2^59 */
 
-  c2 = (h2 + (1 << 25)) >> 26;
+  c2 = (h2 + (Number.one << 25)) >> 26;
   h3 += c2;
   h2 -= c2 << 26;
-  c6 = (h6 + (1 << 25)) >> 26;
+  c6 = (h6 + (Number.one << 25)) >> 26;
   h7 += c6;
   h6 -= c6 << 26;
   /* |h2| <= 2^25; from now on fits into int32 unchanged */
@@ -326,10 +328,10 @@ void FeCombine(FieldElement h, int h0, int h1, int h2, int h3, int h4, int h5,
   /* |h3| <= 1.51*2^58 */
   /* |h7| <= 1.51*2^58 */
 
-  c3 = (h3 + (1 << 24)) >> 25;
+  c3 = (h3 + (Number.one << 24)) >> 25;
   h4 += c3;
   h3 -= c3 << 25;
-  c7 = (h7 + (1 << 24)) >> 25;
+  c7 = (h7 + (Number.one << 24)) >> 25;
   h8 += c7;
   h7 -= c7 << 25;
   /* |h3| <= 2^24; from now on fits into int32 unchanged */
@@ -337,10 +339,10 @@ void FeCombine(FieldElement h, int h0, int h1, int h2, int h3, int h4, int h5,
   /* |h4| <= 1.52*2^33 */
   /* |h8| <= 1.52*2^33 */
 
-  c4 = (h4 + (1 << 25)) >> 26;
+  c4 = (h4 + (Number.one << 25)) >> 26;
   h5 += c4;
   h4 -= c4 << 26;
-  c8 = (h8 + (1 << 25)) >> 26;
+  c8 = (h8 + (Number.one << 25)) >> 26;
   h9 += c8;
   h8 -= c8 << 26;
   /* |h4| <= 2^25; from now on fits into int32 unchanged */
@@ -348,13 +350,13 @@ void FeCombine(FieldElement h, int h0, int h1, int h2, int h3, int h4, int h5,
   /* |h5| <= 1.01*2^24 */
   /* |h9| <= 1.51*2^58 */
 
-  c9 = (h9 + (1 << 24)) >> 25;
-  h0 += c9 * 19;
+  c9 = (h9 + (Number.one << 24)) >> 25;
+  h0 += c9 * Number.v19;
   h9 -= c9 << 25;
   /* |h9| <= 2^24; from now on fits into int32 unchanged */
   /* |h0| <= 1.8*2^37 */
 
-  c0 = (h0 + (1 << 25)) >> 26;
+  c0 = (h0 + (Number.one << 25)) >> 26;
   h1 += c0;
   h0 -= c0 << 26;
   /* |h0| <= 2^25; from now on fits into int32 unchanged */
@@ -411,11 +413,11 @@ void FeMul(FieldElement h, FieldElement f, FieldElement g) {
   var f8 = f[8];
   var f9 = f[9];
 
-  var f1_2 = 2 * f[1];
-  var f3_2 = 2 * f[3];
-  var f5_2 = 2 * f[5];
-  var f7_2 = 2 * f[7];
-  var f9_2 = 2 * f[9];
+  var f1_2 = Number.two * f[1];
+  var f3_2 = Number.two * f[3];
+  var f5_2 = Number.two * f[5];
+  var f7_2 = Number.two * f[7];
+  var f9_2 = Number.two * f[9];
 
   var g0 = g[0];
   var g1 = g[1];
@@ -428,15 +430,15 @@ void FeMul(FieldElement h, FieldElement f, FieldElement g) {
   var g8 = g[8];
   var g9 = g[9];
 
-  var g1_19 = 19 * g[1]; /* 1.4*2^29 */
-  var g2_19 = 19 * g[2]; /* 1.4*2^30; still ok */
-  var g3_19 = 19 * g[3];
-  var g4_19 = 19 * g[4];
-  var g5_19 = 19 * g[5];
-  var g6_19 = 19 * g[6];
-  var g7_19 = 19 * g[7];
-  var g8_19 = 19 * g[8];
-  var g9_19 = 19 * g[9];
+  var g1_19 = Number.v19 * g[1]; /* 1.4*2^29 */
+  var g2_19 = Number.v19 * g[2]; /* 1.4*2^30; still ok */
+  var g3_19 = Number.v19 * g[3];
+  var g4_19 = Number.v19 * g[4];
+  var g5_19 = Number.v19 * g[5];
+  var g6_19 = Number.v19 * g[6];
+  var g7_19 = Number.v19 * g[7];
+  var g8_19 = Number.v19 * g[8];
+  var g9_19 = Number.v19 * g[9];
 
   var h0 = f0 * g0 +
       f1_2 * g9_19 +
@@ -542,7 +544,7 @@ void FeMul(FieldElement h, FieldElement f, FieldElement g) {
   FeCombine(h, h0, h1, h2, h3, h4, h5, h6, h7, h8, h9);
 }
 
-List<int> feSquare(FieldElement f) {
+List<Number> feSquare(FieldElement f) {
   var f0 = f[0];
   var f1 = f[1];
   var f2 = f[2];
@@ -553,19 +555,19 @@ List<int> feSquare(FieldElement f) {
   var f7 = f[7];
   var f8 = f[8];
   var f9 = f[9];
-  var f0_2 = 2 * f[0];
-  var f1_2 = 2 * f[1];
-  var f2_2 = 2 * f[2];
-  var f3_2 = 2 * f[3];
-  var f4_2 = 2 * f[4];
-  var f5_2 = 2 * f[5];
-  var f6_2 = 2 * f[6];
-  var f7_2 = 2 * f[7];
-  var f5_38 = 38 * f5; // 1.31*2^30
-  var f6_19 = 19 * f6; // 1.31*2^30
-  var f7_38 = 38 * f7; // 1.31*2^30
-  var f8_19 = 19 * f8; // 1.31*2^30
-  var f9_38 = 38 * f9; // 1.31*2^30
+  var f0_2 = Number.two * f[0];
+  var f1_2 = Number.two * f[1];
+  var f2_2 = Number.two * f[2];
+  var f3_2 = Number.two * f[3];
+  var f4_2 = Number.two * f[4];
+  var f5_2 = Number.two * f[5];
+  var f6_2 = Number.two * f[6];
+  var f7_2 = Number.two * f[7];
+  var f5_38 = Number.v38 * f5; // 1.31*2^30
+  var f6_19 = Number.v19 * f6; // 1.31*2^30
+  var f7_38 = Number.v38 * f7; // 1.31*2^30
+  var f8_19 = Number.v19 * f8; // 1.31*2^30
+  var f9_38 = Number.v38 * f9; // 1.31*2^30
 
   var h0 = f0 * f0 +
       f1_2 * f9_38 +
@@ -1138,11 +1140,11 @@ void GeDoubleScalarMultVartime(ProjectiveGroupElement r, Uint8List a,
 
 /// equal returns 1 if b == c and 0 otherwise, assuming that b and c are
 /// non-negative.
-int equal(int b, int c) {
+Number equal(Number b, Number c) {
   if (b == c) {
-    return 1;
+    return Number.one;
   } else {
-    return 0;
+    return Number.zero;
   }
 //  var x = b ^ c;
 //  x--;
@@ -1150,30 +1152,30 @@ int equal(int b, int c) {
 }
 
 /// negative returns 1 if b < 0 and 0 otherwise.
-int negative(int b) {
-  if (b < 0) {
-    return 1;
+Number negative(Number b) {
+  if (b < Number.zero) {
+    return Number.one;
   } else {
-    return 0;
+    return Number.zero;
   }
 //  return (b >> 31) & 1;
 }
 
 void PreComputedGroupElementCMove(
-    PreComputedGroupElement t, PreComputedGroupElement u, int b) {
+    PreComputedGroupElement t, PreComputedGroupElement u, Number b) {
   FeCMove(t.yPlusX, u.yPlusX, b);
   FeCMove(t.yMinusX, u.yMinusX, b);
   FeCMove(t.xy2d, u.xy2d, b);
 }
 
-void selectPoint(PreComputedGroupElement t, int pos, int b) {
+void selectPoint(PreComputedGroupElement t, int pos, Number b) {
   var minusT = PreComputedGroupElement();
   var bNegative = negative(b);
   var bAbs = b - (((-bNegative) & b) << 1);
 
   t.Zero();
   for (var i = 0; i < 8; i++) {
-    PreComputedGroupElementCMove(t, base[pos][i], equal(bAbs, i + 1));
+    PreComputedGroupElementCMove(t, base[pos][i], equal(bAbs, Number(i + 1)));
   }
   FeCopy(minusT.yPlusX, t.yMinusX);
   FeCopy(minusT.yMinusX, t.yPlusX);
@@ -1188,20 +1190,20 @@ void selectPoint(PreComputedGroupElement t, int pos, int b) {
 /// Preconditions:
 ///   a[31] <= 127
 void GeScalarMultBase(ExtendedGroupElement h, Uint8List a) {
-  var e = List<int>.filled(64, 0);
+  var e = List<Number>.filled(64, Number.zero);
 
   for (var i = 0; i < a.length; i++) {
     var v = a[i];
-    e[2 * i] = v & 15;
-    e[2 * i + 1] = (v >> 4) & 15;
+    e[2 * i] = Number(v) & Number.v15;
+    e[2 * i + 1] = Number((v >> 4)) & Number.v15;
   }
 
   // each e[i] is between 0 and 15 and e[63] is between 0 and 7.
 
-  var carry = 0;
+  var carry = Number.zero;
   for (var i = 0; i < 63; i++) {
     e[i] += carry;
-    carry = (e[i] + 8) >> 4;
+    carry = (e[i] + Number.v8) >> 4;
     e[i] -= carry << 4;
   }
   e[63] += carry;
@@ -1245,46 +1247,46 @@ void GeScalarMultBase(ExtendedGroupElement h, Uint8List a) {
 ///   s[0]+256*s[1]+...+256^31*s[31] = (ab+c) mod l
 ///   where l = 2^252 + 27742317777372353535851937790883648493.
 void ScMulAdd(Uint8List s, Uint8List a, Uint8List b, Uint8List c) {
-  var a0 = 2097151 & load3(a.sublist(0, a.length));
-  var a1 = 2097151 & (load4(a.sublist(2, a.length)) >> 5);
-  var a2 = 2097151 & (load3(a.sublist(5, a.length)) >> 2);
-  var a3 = 2097151 & (load4(a.sublist(7, a.length)) >> 7);
-  var a4 = 2097151 & (load4(a.sublist(10, a.length)) >> 4);
-  var a5 = 2097151 & (load3(a.sublist(13, a.length)) >> 1);
-  var a6 = 2097151 & (load4(a.sublist(15, a.length)) >> 6);
-  var a7 = 2097151 & (load3(a.sublist(18, a.length)) >> 3);
-  var a8 = 2097151 & load3(a.sublist(21, a.length));
-  var a9 = 2097151 & (load4(a.sublist(23, a.length)) >> 5);
-  var a10 = 2097151 & (load3(a.sublist(26, a.length)) >> 2);
+  var a0 = Number.v2097151 & load3(a.sublist(0, a.length));
+  var a1 = Number.v2097151 & (load4(a.sublist(2, a.length)) >> 5);
+  var a2 = Number.v2097151 & (load3(a.sublist(5, a.length)) >> 2);
+  var a3 = Number.v2097151 & (load4(a.sublist(7, a.length)) >> 7);
+  var a4 = Number.v2097151 & (load4(a.sublist(10, a.length)) >> 4);
+  var a5 = Number.v2097151 & (load3(a.sublist(13, a.length)) >> 1);
+  var a6 = Number.v2097151 & (load4(a.sublist(15, a.length)) >> 6);
+  var a7 = Number.v2097151 & (load3(a.sublist(18, a.length)) >> 3);
+  var a8 = Number.v2097151 & load3(a.sublist(21, a.length));
+  var a9 = Number.v2097151 & (load4(a.sublist(23, a.length)) >> 5);
+  var a10 =Number.v2097151  & (load3(a.sublist(26, a.length)) >> 2);
   var a11 = (load4(a.sublist(28, a.length)) >> 7);
 
-  var b0 = 2097151 & load3(b.sublist(0, b.length));
-  var b1 = 2097151 & (load4(b.sublist(2, b.length)) >> 5);
-  var b2 = 2097151 & (load3(b.sublist(5, b.length)) >> 2);
-  var b3 = 2097151 & (load4(b.sublist(7, b.length)) >> 7);
-  var b4 = 2097151 & (load4(b.sublist(10, b.length)) >> 4);
-  var b5 = 2097151 & (load3(b.sublist(13, b.length)) >> 1);
-  var b6 = 2097151 & (load4(b.sublist(15, b.length)) >> 6);
-  var b7 = 2097151 & (load3(b.sublist(18, b.length)) >> 3);
-  var b8 = 2097151 & load3(b.sublist(21, b.length));
-  var b9 = 2097151 & (load4(b.sublist(23, b.length)) >> 5);
-  var b10 = 2097151 & (load3(b.sublist(26, b.length)) >> 2);
+  var b0 = Number.v2097151 & load3(b.sublist(0, b.length));
+  var b1 = Number.v2097151 & (load4(b.sublist(2, b.length)) >> 5);
+  var b2 = Number.v2097151 & (load3(b.sublist(5, b.length)) >> 2);
+  var b3 = Number.v2097151 & (load4(b.sublist(7, b.length)) >> 7);
+  var b4 = Number.v2097151 & (load4(b.sublist(10, b.length)) >> 4);
+  var b5 = Number.v2097151 & (load3(b.sublist(13, b.length)) >> 1);
+  var b6 = Number.v2097151 & (load4(b.sublist(15, b.length)) >> 6);
+  var b7 = Number.v2097151 & (load3(b.sublist(18, b.length)) >> 3);
+  var b8 = Number.v2097151 & load3(b.sublist(21, b.length));
+  var b9 = Number.v2097151 & (load4(b.sublist(23, b.length)) >> 5);
+  var b10 =Number.v2097151  & (load3(b.sublist(26, b.length)) >> 2);
   var b11 = (load4(b.sublist(28, b.length)) >> 7);
 
-  var c0 = 2097151 & load3(c.sublist(0, c.length));
-  var c1 = 2097151 & (load4(c.sublist(2, c.length)) >> 5);
-  var c2 = 2097151 & (load3(c.sublist(5, c.length)) >> 2);
-  var c3 = 2097151 & (load4(c.sublist(7, c.length)) >> 7);
-  var c4 = 2097151 & (load4(c.sublist(10, c.length)) >> 4);
-  var c5 = 2097151 & (load3(c.sublist(13, c.length)) >> 1);
-  var c6 = 2097151 & (load4(c.sublist(15, c.length)) >> 6);
-  var c7 = 2097151 & (load3(c.sublist(18, c.length)) >> 3);
-  var c8 = 2097151 & load3(c.sublist(21, c.length));
-  var c9 = 2097151 & (load4(c.sublist(23, c.length)) >> 5);
-  var c10 = 2097151 & (load3(c.sublist(26, c.length)) >> 2);
+  var c0 = Number.v2097151 & load3(c.sublist(0, c.length));
+  var c1 = Number.v2097151 & (load4(c.sublist(2, c.length)) >> 5);
+  var c2 = Number.v2097151 & (load3(c.sublist(5, c.length)) >> 2);
+  var c3 = Number.v2097151 & (load4(c.sublist(7, c.length)) >> 7);
+  var c4 = Number.v2097151 & (load4(c.sublist(10, c.length)) >> 4);
+  var c5 = Number.v2097151 & (load3(c.sublist(13, c.length)) >> 1);
+  var c6 = Number.v2097151 & (load4(c.sublist(15, c.length)) >> 6);
+  var c7 = Number.v2097151 & (load3(c.sublist(18, c.length)) >> 3);
+  var c8 = Number.v2097151 & load3(c.sublist(21, c.length));
+  var c9 = Number.v2097151 & (load4(c.sublist(23, c.length)) >> 5);
+  var c10 = Number.v2097151 & (load3(c.sublist(26, c.length)) >> 2);
   var c11 = (load4(c.sublist(28, c.length)) >> 7);
 
-  var carry = List<int>.filled(23, 0);
+  var carry = List<Number>.filled(23, Number.zero);
 
   var s0 = c0 + a0 * b0;
   var s1 = c1 + a0 * b1 + a1 * b0;
@@ -1395,255 +1397,255 @@ void ScMulAdd(Uint8List s, Uint8List a, Uint8List b, Uint8List c) {
   var s20 = a9 * b11 + a10 * b10 + a11 * b9;
   var s21 = a10 * b11 + a11 * b10;
   var s22 = a11 * b11;
-  var s23 = 0;
+  var s23 = Number.zero;
 
-  carry[0] = (s0 + (1 << 20)) >> 21;
+  carry[0] = (s0 + (Number.one << 20)) >> 21;
   s1 += carry[0];
   s0 -= carry[0] << 21;
-  carry[2] = (s2 + (1 << 20)) >> 21;
+  carry[2] = (s2 + (Number.one << 20)) >> 21;
   s3 += carry[2];
   s2 -= carry[2] << 21;
-  carry[4] = (s4 + (1 << 20)) >> 21;
+  carry[4] = (s4 + (Number.one << 20)) >> 21;
   s5 += carry[4];
   s4 -= carry[4] << 21;
-  carry[6] = (s6 + (1 << 20)) >> 21;
+  carry[6] = (s6 + (Number.one << 20)) >> 21;
   s7 += carry[6];
   s6 -= carry[6] << 21;
-  carry[8] = (s8 + (1 << 20)) >> 21;
+  carry[8] = (s8 + (Number.one << 20)) >> 21;
   s9 += carry[8];
   s8 -= carry[8] << 21;
-  carry[10] = (s10 + (1 << 20)) >> 21;
+  carry[10] = (s10 + (Number.one << 20)) >> 21;
   s11 += carry[10];
   s10 -= carry[10] << 21;
-  carry[12] = (s12 + (1 << 20)) >> 21;
+  carry[12] = (s12 + (Number.one << 20)) >> 21;
   s13 += carry[12];
   s12 -= carry[12] << 21;
-  carry[14] = (s14 + (1 << 20)) >> 21;
+  carry[14] = (s14 + (Number.one << 20)) >> 21;
   s15 += carry[14];
   s14 -= carry[14] << 21;
-  carry[16] = (s16 + (1 << 20)) >> 21;
+  carry[16] = (s16 + (Number.one << 20)) >> 21;
   s17 += carry[16];
   s16 -= carry[16] << 21;
-  carry[18] = (s18 + (1 << 20)) >> 21;
+  carry[18] = (s18 + (Number.one << 20)) >> 21;
   s19 += carry[18];
   s18 -= carry[18] << 21;
-  carry[20] = (s20 + (1 << 20)) >> 21;
+  carry[20] = (s20 + (Number.one << 20)) >> 21;
   s21 += carry[20];
   s20 -= carry[20] << 21;
-  carry[22] = (s22 + (1 << 20)) >> 21;
+  carry[22] = (s22 + (Number.one << 20)) >> 21;
   s23 += carry[22];
   s22 -= carry[22] << 21;
 
-  carry[1] = (s1 + (1 << 20)) >> 21;
+  carry[1] = (s1 + (Number.one << 20)) >> 21;
   s2 += carry[1];
   s1 -= carry[1] << 21;
-  carry[3] = (s3 + (1 << 20)) >> 21;
+  carry[3] = (s3 + (Number.one << 20)) >> 21;
   s4 += carry[3];
   s3 -= carry[3] << 21;
-  carry[5] = (s5 + (1 << 20)) >> 21;
+  carry[5] = (s5 + (Number.one << 20)) >> 21;
   s6 += carry[5];
   s5 -= carry[5] << 21;
-  carry[7] = (s7 + (1 << 20)) >> 21;
+  carry[7] = (s7 + (Number.one << 20)) >> 21;
   s8 += carry[7];
   s7 -= carry[7] << 21;
-  carry[9] = (s9 + (1 << 20)) >> 21;
+  carry[9] = (s9 + (Number.one << 20)) >> 21;
   s10 += carry[9];
   s9 -= carry[9] << 21;
-  carry[11] = (s11 + (1 << 20)) >> 21;
+  carry[11] = (s11 + (Number.one << 20)) >> 21;
   s12 += carry[11];
   s11 -= carry[11] << 21;
-  carry[13] = (s13 + (1 << 20)) >> 21;
+  carry[13] = (s13 + (Number.one << 20)) >> 21;
   s14 += carry[13];
   s13 -= carry[13] << 21;
-  carry[15] = (s15 + (1 << 20)) >> 21;
+  carry[15] = (s15 + (Number.one << 20)) >> 21;
   s16 += carry[15];
   s15 -= carry[15] << 21;
-  carry[17] = (s17 + (1 << 20)) >> 21;
+  carry[17] = (s17 + (Number.one << 20)) >> 21;
   s18 += carry[17];
   s17 -= carry[17] << 21;
-  carry[19] = (s19 + (1 << 20)) >> 21;
+  carry[19] = (s19 + (Number.one << 20)) >> 21;
   s20 += carry[19];
   s19 -= carry[19] << 21;
-  carry[21] = (s21 + (1 << 20)) >> 21;
+  carry[21] = (s21 + (Number.one << 20)) >> 21;
   s22 += carry[21];
   s21 -= carry[21] << 21;
 
-  s11 += s23 * 666643;
-  s12 += s23 * 470296;
-  s13 += s23 * 654183;
-  s14 -= s23 * 997805;
-  s15 += s23 * 136657;
-  s16 -= s23 * 683901;
-  s23 = 0;
+  s11 += s23 * Number.v666643;
+  s12 += s23 * Number.v470296;
+  s13 += s23 * Number.v654183;
+  s14 -= s23 * Number.v997805;
+  s15 += s23 * Number.v136657;
+  s16 -= s23 * Number.v683901;
+  s23 = Number.zero;
 
-  s10 += s22 * 666643;
-  s11 += s22 * 470296;
-  s12 += s22 * 654183;
-  s13 -= s22 * 997805;
-  s14 += s22 * 136657;
-  s15 -= s22 * 683901;
-  s22 = 0;
+  s10 += s22 * Number.v666643;
+  s11 += s22 * Number.v470296;
+  s12 += s22 * Number.v654183;
+  s13 -= s22 * Number.v997805;
+  s14 += s22 * Number.v136657;
+  s15 -= s22 * Number.v683901;
+  s22 = Number.zero;
 
-  s9 += s21 * 666643;
-  s10 += s21 * 470296;
-  s11 += s21 * 654183;
-  s12 -= s21 * 997805;
-  s13 += s21 * 136657;
-  s14 -= s21 * 683901;
-  s21 = 0;
+  s9 += s21 * Number.v666643;
+  s10 += s21 * Number.v470296;
+  s11 += s21 * Number.v654183;
+  s12 -= s21 * Number.v997805;
+  s13 += s21 * Number.v136657;
+  s14 -= s21 * Number.v683901;
+  s21 = Number.zero;
 
-  s8 += s20 * 666643;
-  s9 += s20 * 470296;
-  s10 += s20 * 654183;
-  s11 -= s20 * 997805;
-  s12 += s20 * 136657;
-  s13 -= s20 * 683901;
-  s20 = 0;
+  s8 += s20 * Number.v666643;
+  s9 += s20 * Number.v470296;
+  s10 += s20 * Number.v654183;
+  s11 -= s20 * Number.v997805;
+  s12 += s20 * Number.v136657;
+  s13 -= s20 * Number.v683901;
+  s20 = Number.zero;
 
-  s7 += s19 * 666643;
-  s8 += s19 * 470296;
-  s9 += s19 * 654183;
-  s10 -= s19 * 997805;
-  s11 += s19 * 136657;
-  s12 -= s19 * 683901;
-  s19 = 0;
+  s7 += s19 * Number.v666643;
+  s8 += s19 * Number.v470296;
+  s9 += s19 * Number.v654183;
+  s10 -= s19 * Number.v997805;
+  s11 += s19 * Number.v136657;
+  s12 -= s19 * Number.v683901;
+  s19 = Number.zero;
 
-  s6 += s18 * 666643;
-  s7 += s18 * 470296;
-  s8 += s18 * 654183;
-  s9 -= s18 * 997805;
-  s10 += s18 * 136657;
-  s11 -= s18 * 683901;
-  s18 = 0;
+  s6 += s18 * Number.v666643;
+  s7 += s18 * Number.v470296;
+  s8 += s18 * Number.v654183;
+  s9 -= s18 * Number.v997805;
+  s10 += s18 * Number.v136657;
+  s11 -= s18 * Number.v683901;
+  s18 = Number.zero;
 
-  carry[6] = (s6 + (1 << 20)) >> 21;
+  carry[6] = (s6 + (Number.one << 20)) >> 21;
   s7 += carry[6];
   s6 -= carry[6] << 21;
-  carry[8] = (s8 + (1 << 20)) >> 21;
+  carry[8] = (s8 + (Number.one << 20)) >> 21;
   s9 += carry[8];
   s8 -= carry[8] << 21;
-  carry[10] = (s10 + (1 << 20)) >> 21;
+  carry[10] = (s10 + (Number.one << 20)) >> 21;
   s11 += carry[10];
   s10 -= carry[10] << 21;
-  carry[12] = (s12 + (1 << 20)) >> 21;
+  carry[12] = (s12 + (Number.one << 20)) >> 21;
   s13 += carry[12];
   s12 -= carry[12] << 21;
-  carry[14] = (s14 + (1 << 20)) >> 21;
+  carry[14] = (s14 + (Number.one << 20)) >> 21;
   s15 += carry[14];
   s14 -= carry[14] << 21;
-  carry[16] = (s16 + (1 << 20)) >> 21;
+  carry[16] = (s16 + (Number.one << 20)) >> 21;
   s17 += carry[16];
   s16 -= carry[16] << 21;
 
-  carry[7] = (s7 + (1 << 20)) >> 21;
+  carry[7] = (s7 + (Number.one << 20)) >> 21;
   s8 += carry[7];
   s7 -= carry[7] << 21;
-  carry[9] = (s9 + (1 << 20)) >> 21;
+  carry[9] = (s9 + (Number.one << 20)) >> 21;
   s10 += carry[9];
   s9 -= carry[9] << 21;
-  carry[11] = (s11 + (1 << 20)) >> 21;
+  carry[11] = (s11 + (Number.one << 20)) >> 21;
   s12 += carry[11];
   s11 -= carry[11] << 21;
-  carry[13] = (s13 + (1 << 20)) >> 21;
+  carry[13] = (s13 + (Number.one << 20)) >> 21;
   s14 += carry[13];
   s13 -= carry[13] << 21;
-  carry[15] = (s15 + (1 << 20)) >> 21;
+  carry[15] = (s15 + (Number.one << 20)) >> 21;
   s16 += carry[15];
   s15 -= carry[15] << 21;
 
-  s5 += s17 * 666643;
-  s6 += s17 * 470296;
-  s7 += s17 * 654183;
-  s8 -= s17 * 997805;
-  s9 += s17 * 136657;
-  s10 -= s17 * 683901;
-  s17 = 0;
+  s5 += s17 * Number.v666643;
+  s6 += s17 * Number.v470296;
+  s7 += s17 * Number.v654183;
+  s8 -= s17 * Number.v997805;
+  s9 += s17 * Number.v136657;
+  s10 -= s17 * Number.v683901;
+  s17 = Number.zero;
 
-  s4 += s16 * 666643;
-  s5 += s16 * 470296;
-  s6 += s16 * 654183;
-  s7 -= s16 * 997805;
-  s8 += s16 * 136657;
-  s9 -= s16 * 683901;
-  s16 = 0;
+  s4 += s16 * Number.v666643;
+  s5 += s16 * Number.v470296;
+  s6 += s16 * Number.v654183;
+  s7 -= s16 * Number.v997805;
+  s8 += s16 * Number.v136657;
+  s9 -= s16 * Number.v683901;
+  s16 = Number.zero;
 
-  s3 += s15 * 666643;
-  s4 += s15 * 470296;
-  s5 += s15 * 654183;
-  s6 -= s15 * 997805;
-  s7 += s15 * 136657;
-  s8 -= s15 * 683901;
-  s15 = 0;
+  s3 += s15 * Number.v666643;
+  s4 += s15 * Number.v470296;
+  s5 += s15 * Number.v654183;
+  s6 -= s15 * Number.v997805;
+  s7 += s15 * Number.v136657;
+  s8 -= s15 * Number.v683901;
+  s15 = Number.zero;
 
-  s2 += s14 * 666643;
-  s3 += s14 * 470296;
-  s4 += s14 * 654183;
-  s5 -= s14 * 997805;
-  s6 += s14 * 136657;
-  s7 -= s14 * 683901;
-  s14 = 0;
+  s2 += s14 * Number.v666643;
+  s3 += s14 * Number.v470296;
+  s4 += s14 * Number.v654183;
+  s5 -= s14 * Number.v997805;
+  s6 += s14 * Number.v136657;
+  s7 -= s14 * Number.v683901;
+  s14 = Number.zero;
 
-  s1 += s13 * 666643;
-  s2 += s13 * 470296;
-  s3 += s13 * 654183;
-  s4 -= s13 * 997805;
-  s5 += s13 * 136657;
-  s6 -= s13 * 683901;
-  s13 = 0;
+  s1 += s13 * Number.v666643;
+  s2 += s13 * Number.v470296;
+  s3 += s13 * Number.v654183;
+  s4 -= s13 * Number.v997805;
+  s5 += s13 * Number.v136657;
+  s6 -= s13 * Number.v683901;
+  s13 = Number.zero;
 
-  s0 += s12 * 666643;
-  s1 += s12 * 470296;
-  s2 += s12 * 654183;
-  s3 -= s12 * 997805;
-  s4 += s12 * 136657;
-  s5 -= s12 * 683901;
-  s12 = 0;
+  s0 += s12 * Number.v666643;
+  s1 += s12 * Number.v470296;
+  s2 += s12 * Number.v654183;
+  s3 -= s12 * Number.v997805;
+  s4 += s12 * Number.v136657;
+  s5 -= s12 * Number.v683901;
+  s12 = Number.zero;
 
-  carry[0] = (s0 + (1 << 20)) >> 21;
+  carry[0] = (s0 + (Number.one << 20)) >> 21;
   s1 += carry[0];
   s0 -= carry[0] << 21;
-  carry[2] = (s2 + (1 << 20)) >> 21;
+  carry[2] = (s2 + (Number.one << 20)) >> 21;
   s3 += carry[2];
   s2 -= carry[2] << 21;
-  carry[4] = (s4 + (1 << 20)) >> 21;
+  carry[4] = (s4 + (Number.one << 20)) >> 21;
   s5 += carry[4];
   s4 -= carry[4] << 21;
-  carry[6] = (s6 + (1 << 20)) >> 21;
+  carry[6] = (s6 + (Number.one << 20)) >> 21;
   s7 += carry[6];
   s6 -= carry[6] << 21;
-  carry[8] = (s8 + (1 << 20)) >> 21;
+  carry[8] = (s8 + (Number.one << 20)) >> 21;
   s9 += carry[8];
   s8 -= carry[8] << 21;
-  carry[10] = (s10 + (1 << 20)) >> 21;
+  carry[10] = (s10 + (Number.one << 20)) >> 21;
   s11 += carry[10];
   s10 -= carry[10] << 21;
 
-  carry[1] = (s1 + (1 << 20)) >> 21;
+  carry[1] = (s1 + (Number.one << 20)) >> 21;
   s2 += carry[1];
   s1 -= carry[1] << 21;
-  carry[3] = (s3 + (1 << 20)) >> 21;
+  carry[3] = (s3 + (Number.one << 20)) >> 21;
   s4 += carry[3];
   s3 -= carry[3] << 21;
-  carry[5] = (s5 + (1 << 20)) >> 21;
+  carry[5] = (s5 + (Number.one << 20)) >> 21;
   s6 += carry[5];
   s5 -= carry[5] << 21;
-  carry[7] = (s7 + (1 << 20)) >> 21;
+  carry[7] = (s7 + (Number.one << 20)) >> 21;
   s8 += carry[7];
   s7 -= carry[7] << 21;
-  carry[9] = (s9 + (1 << 20)) >> 21;
+  carry[9] = (s9 + (Number.one << 20)) >> 21;
   s10 += carry[9];
   s9 -= carry[9] << 21;
-  carry[11] = (s11 + (1 << 20)) >> 21;
+  carry[11] = (s11 + (Number.one << 20)) >> 21;
   s12 += carry[11];
   s11 -= carry[11] << 21;
 
-  s0 += s12 * 666643;
-  s1 += s12 * 470296;
-  s2 += s12 * 654183;
-  s3 -= s12 * 997805;
-  s4 += s12 * 136657;
-  s5 -= s12 * 683901;
-  s12 = 0;
+  s0 += s12 * Number.v666643;
+  s1 += s12 * Number.v470296;
+  s2 += s12 * Number.v654183;
+  s3 -= s12 * Number.v997805;
+  s4 += s12 * Number.v136657;
+  s5 -= s12 * Number.v683901;
+  s12 = Number.zero;
 
   carry[0] = s0 >> 21;
   s1 += carry[0];
@@ -1682,13 +1684,13 @@ void ScMulAdd(Uint8List s, Uint8List a, Uint8List b, Uint8List c) {
   s12 += carry[11];
   s11 -= carry[11] << 21;
 
-  s0 += s12 * 666643;
-  s1 += s12 * 470296;
-  s2 += s12 * 654183;
-  s3 -= s12 * 997805;
-  s4 += s12 * 136657;
-  s5 -= s12 * 683901;
-  s12 = 0;
+  s0 += s12 * Number.v666643;
+  s1 += s12 * Number.v470296;
+  s2 += s12 * Number.v654183;
+  s3 -= s12 * Number.v997805;
+  s4 += s12 * Number.v136657;
+  s5 -= s12 * Number.v683901;
+  s12 = Number.zero;
 
   carry[0] = s0 >> 21;
   s1 += carry[0];
@@ -1724,38 +1726,38 @@ void ScMulAdd(Uint8List s, Uint8List a, Uint8List b, Uint8List c) {
   s11 += carry[10];
   s10 -= carry[10] << 21;
 
-  s[0] = s0 >> 0;
-  s[1] = s0 >> 8;
-  s[2] = (s0 >> 16) | (s1 << 5);
-  s[3] = s1 >> 3;
-  s[4] = s1 >> 11;
-  s[5] = (s1 >> 19) | (s2 << 2);
-  s[6] = s2 >> 6;
-  s[7] = (s2 >> 14) | (s3 << 7);
-  s[8] = s3 >> 1;
-  s[9] = s3 >> 9;
-  s[10] = (s3 >> 17) | (s4 << 4);
-  s[11] = s4 >> 4;
-  s[12] = s4 >> 12;
-  s[13] = (s4 >> 20) | (s5 << 1);
-  s[14] = s5 >> 7;
-  s[15] = (s5 >> 15) | (s6 << 6);
-  s[16] = s6 >> 2;
-  s[17] = s6 >> 10;
-  s[18] = (s6 >> 18) | (s7 << 3);
-  s[19] = s7 >> 5;
-  s[20] = s7 >> 13;
-  s[21] = s8 >> 0;
-  s[22] = s8 >> 8;
-  s[23] = (s8 >> 16) | (s9 << 5);
-  s[24] = s9 >> 3;
-  s[25] = s9 >> 11;
-  s[26] = (s9 >> 19) | (s10 << 2);
-  s[27] = s10 >> 6;
-  s[28] = (s10 >> 14) | (s11 << 7);
-  s[29] = s11 >> 1;
-  s[30] = s11 >> 9;
-  s[31] = s11 >> 17;
+  s[0] = (s0 >> 0).intValue;
+  s[1] = (s0 >> 8).intValue;
+  s[2] = ((s0 >> 16) | (s1 << 5)).intValue;
+  s[3] = (s1 >> 3).intValue;
+  s[4] = (s1 >> 11).intValue;
+  s[5] = ((s1 >> 19) | (s2 << 2)).intValue;
+  s[6] = (s2 >> 6).intValue;
+  s[7] = ((s2 >> 14) | (s3 << 7)).intValue;
+  s[8] = (s3 >> 1).intValue;
+  s[9] = (s3 >> 9).intValue;
+  s[10] = ((s3 >> 17) | (s4 << 4)).intValue;
+  s[11] = (s4 >> 4).intValue;
+  s[12] = (s4 >> 12).intValue;
+  s[13] = ((s4 >> 20) | (s5 << 1)).intValue;
+  s[14] = (s5 >> 7).intValue;
+  s[15] = ((s5 >> 15) | (s6 << 6)).intValue;
+  s[16] = (s6 >> 2).intValue;
+  s[17] = (s6 >> 10).intValue;
+  s[18] = ((s6 >> 18) | (s7 << 3)).intValue;
+  s[19] = (s7 >> 5).intValue;
+  s[20] = (s7 >> 13).intValue;
+  s[21] = (s8 >> 0).intValue;
+  s[22] = (s8 >> 8).intValue;
+  s[23] = ((s8 >> 16) | (s9 << 5)).intValue;
+  s[24] = (s9 >> 3).intValue;
+  s[25] = (s9 >> 11).intValue;
+  s[26] = ((s9 >> 19) | (s10 << 2)).intValue;
+  s[27] = (s10 >> 6).intValue;
+  s[28] = ((s10 >> 14) | (s11 << 7)).intValue;
+  s[29] = (s11 >> 1).intValue;
+  s[30] = (s11 >> 9).intValue;
+  s[31] = (s11 >> 17).intValue;
 }
 
 /// Input:
@@ -1765,209 +1767,209 @@ void ScMulAdd(Uint8List s, Uint8List a, Uint8List b, Uint8List c) {
 ///   s[0]+256*s[1]+...+256^31*s[31] = s mod l
 ///   where l = 2^252 + 27742317777372353535851937790883648493.
 void ScReduce(Uint8List out, Uint8List s) {
-  var s0 = 2097151 & load3(s.sublist(0, s.length));
-  var s1 = 2097151 & (load4(s.sublist(2, s.length)) >> 5);
-  var s2 = 2097151 & (load3(s.sublist(5, s.length)) >> 2);
-  var s3 = 2097151 & (load4(s.sublist(7, s.length)) >> 7);
-  var s4 = 2097151 & (load4(s.sublist(10, s.length)) >> 4);
-  var s5 = 2097151 & (load3(s.sublist(13, s.length)) >> 1);
-  var s6 = 2097151 & (load4(s.sublist(15, s.length)) >> 6);
-  var s7 = 2097151 & (load3(s.sublist(18, s.length)) >> 3);
-  var s8 = 2097151 & load3(s.sublist(21, s.length));
-  var s9 = 2097151 & (load4(s.sublist(23, s.length)) >> 5);
-  var s10 = 2097151 & (load3(s.sublist(26, s.length)) >> 2);
-  var s11 = 2097151 & (load4(s.sublist(28, s.length)) >> 7);
-  var s12 = 2097151 & (load4(s.sublist(31, s.length)) >> 4);
-  var s13 = 2097151 & (load3(s.sublist(34, s.length)) >> 1);
-  var s14 = 2097151 & (load4(s.sublist(36, s.length)) >> 6);
-  var s15 = 2097151 & (load3(s.sublist(39, s.length)) >> 3);
-  var s16 = 2097151 & load3(s.sublist(42, s.length));
-  var s17 = 2097151 & (load4(s.sublist(44, s.length)) >> 5);
-  var s18 = 2097151 & (load3(s.sublist(47, s.length)) >> 2);
-  var s19 = 2097151 & (load4(s.sublist(49, s.length)) >> 7);
-  var s20 = 2097151 & (load4(s.sublist(52, s.length)) >> 4);
-  var s21 = 2097151 & (load3(s.sublist(55, s.length)) >> 1);
-  var s22 = 2097151 & (load4(s.sublist(57, s.length)) >> 6);
+  var s0 = Number.v2097151 & load3(s.sublist(0, s.length));
+  var s1 = Number.v2097151 & (load4(s.sublist(2, s.length)) >> 5);
+  var s2 = Number.v2097151 & (load3(s.sublist(5, s.length)) >> 2);
+  var s3 = Number.v2097151 & (load4(s.sublist(7, s.length)) >> 7);
+  var s4 = Number.v2097151 & (load4(s.sublist(10, s.length)) >> 4);
+  var s5 = Number.v2097151 & (load3(s.sublist(13, s.length)) >> 1);
+  var s6 = Number.v2097151 & (load4(s.sublist(15, s.length)) >> 6);
+  var s7 = Number.v2097151 & (load3(s.sublist(18, s.length)) >> 3);
+  var s8 = Number.v2097151 & load3(s.sublist(21, s.length));
+  var s9 = Number.v2097151 & (load4(s.sublist(23, s.length)) >> 5);
+  var s10 = Number.v2097151 & (load3(s.sublist(26, s.length)) >> 2);
+  var s11 = Number.v2097151 & (load4(s.sublist(28, s.length)) >> 7);
+  var s12 = Number.v2097151 & (load4(s.sublist(31, s.length)) >> 4);
+  var s13 = Number.v2097151 & (load3(s.sublist(34, s.length)) >> 1);
+  var s14 = Number.v2097151 & (load4(s.sublist(36, s.length)) >> 6);
+  var s15 = Number.v2097151 & (load3(s.sublist(39, s.length)) >> 3);
+  var s16 = Number.v2097151 & load3(s.sublist(42, s.length));
+  var s17 = Number.v2097151 & (load4(s.sublist(44, s.length)) >> 5);
+  var s18 = Number.v2097151 & (load3(s.sublist(47, s.length)) >> 2);
+  var s19 = Number.v2097151 & (load4(s.sublist(49, s.length)) >> 7);
+  var s20 = Number.v2097151 & (load4(s.sublist(52, s.length)) >> 4);
+  var s21 = Number.v2097151 & (load3(s.sublist(55, s.length)) >> 1);
+  var s22 = Number.v2097151 & (load4(s.sublist(57, s.length)) >> 6);
   var s23 = (load4(s.sublist(60, s.length)) >> 3);
 
-  s11 += s23 * 666643;
-  s12 += s23 * 470296;
-  s13 += s23 * 654183;
-  s14 -= s23 * 997805;
-  s15 += s23 * 136657;
-  s16 -= s23 * 683901;
-  s23 = 0;
+  s11 += s23 * Number.v666643;
+  s12 += s23 * Number.v470296;
+  s13 += s23 * Number.v654183;
+  s14 -= s23 * Number.v997805;
+  s15 += s23 * Number.v136657;
+  s16 -= s23 * Number.v683901;
+  s23 = Number.zero;
 
-  s10 += s22 * 666643;
-  s11 += s22 * 470296;
-  s12 += s22 * 654183;
-  s13 -= s22 * 997805;
-  s14 += s22 * 136657;
-  s15 -= s22 * 683901;
-  s22 = 0;
+  s10 += s22 * Number.v666643;
+  s11 += s22 * Number.v470296;
+  s12 += s22 * Number.v654183;
+  s13 -= s22 * Number.v997805;
+  s14 += s22 * Number.v136657;
+  s15 -= s22 * Number.v683901;
+  s22 = Number.zero;
 
-  s9 += s21 * 666643;
-  s10 += s21 * 470296;
-  s11 += s21 * 654183;
-  s12 -= s21 * 997805;
-  s13 += s21 * 136657;
-  s14 -= s21 * 683901;
-  s21 = 0;
+  s9 += s21 * Number.v666643;
+  s10 += s21 * Number.v470296;
+  s11 += s21 * Number.v654183;
+  s12 -= s21 * Number.v997805;
+  s13 += s21 * Number.v136657;
+  s14 -= s21 * Number.v683901;
+  s21 = Number.zero;
 
-  s8 += s20 * 666643;
-  s9 += s20 * 470296;
-  s10 += s20 * 654183;
-  s11 -= s20 * 997805;
-  s12 += s20 * 136657;
-  s13 -= s20 * 683901;
-  s20 = 0;
+  s8 += s20 * Number.v666643;
+  s9 += s20 * Number.v470296;
+  s10 += s20 * Number.v654183;
+  s11 -= s20 * Number.v997805;
+  s12 += s20 * Number.v136657;
+  s13 -= s20 * Number.v683901;
+  s20 = Number.zero;
 
-  s7 += s19 * 666643;
-  s8 += s19 * 470296;
-  s9 += s19 * 654183;
-  s10 -= s19 * 997805;
-  s11 += s19 * 136657;
-  s12 -= s19 * 683901;
-  s19 = 0;
+  s7 += s19 * Number.v666643;
+  s8 += s19 * Number.v470296;
+  s9 += s19 * Number.v654183;
+  s10 -= s19 * Number.v997805;
+  s11 += s19 * Number.v136657;
+  s12 -= s19 * Number.v683901;
+  s19 = Number.zero;
 
-  s6 += s18 * 666643;
-  s7 += s18 * 470296;
-  s8 += s18 * 654183;
-  s9 -= s18 * 997805;
-  s10 += s18 * 136657;
-  s11 -= s18 * 683901;
-  s18 = 0;
+  s6 += s18 * Number.v666643;
+  s7 += s18 * Number.v470296;
+  s8 += s18 * Number.v654183;
+  s9 -= s18 * Number.v997805;
+  s10 += s18 * Number.v136657;
+  s11 -= s18 * Number.v683901;
+  s18 = Number.zero;
 
-  var carry = List<int>.filled(64, 0);
+  var carry = List<Number>.filled(64, Number.zero);
 
-  carry[6] = (s6 + (1 << 20)) >> 21;
+  carry[6] = (s6 + (Number.one << 20)) >> 21;
   s7 += carry[6];
   s6 -= carry[6] << 21;
-  carry[8] = (s8 + (1 << 20)) >> 21;
+  carry[8] = (s8 + (Number.one << 20)) >> 21;
   s9 += carry[8];
   s8 -= carry[8] << 21;
-  carry[10] = (s10 + (1 << 20)) >> 21;
+  carry[10] = (s10 + (Number.one << 20)) >> 21;
   s11 += carry[10];
   s10 -= carry[10] << 21;
-  carry[12] = (s12 + (1 << 20)) >> 21;
+  carry[12] = (s12 + (Number.one << 20)) >> 21;
   s13 += carry[12];
   s12 -= carry[12] << 21;
-  carry[14] = (s14 + (1 << 20)) >> 21;
+  carry[14] = (s14 + (Number.one << 20)) >> 21;
   s15 += carry[14];
   s14 -= carry[14] << 21;
-  carry[16] = (s16 + (1 << 20)) >> 21;
+  carry[16] = (s16 + (Number.one << 20)) >> 21;
   s17 += carry[16];
   s16 -= carry[16] << 21;
 
-  carry[7] = (s7 + (1 << 20)) >> 21;
+  carry[7] = (s7 + (Number.one << 20)) >> 21;
   s8 += carry[7];
   s7 -= carry[7] << 21;
-  carry[9] = (s9 + (1 << 20)) >> 21;
+  carry[9] = (s9 + (Number.one << 20)) >> 21;
   s10 += carry[9];
   s9 -= carry[9] << 21;
-  carry[11] = (s11 + (1 << 20)) >> 21;
+  carry[11] = (s11 + (Number.one << 20)) >> 21;
   s12 += carry[11];
   s11 -= carry[11] << 21;
-  carry[13] = (s13 + (1 << 20)) >> 21;
+  carry[13] = (s13 + (Number.one << 20)) >> 21;
   s14 += carry[13];
   s13 -= carry[13] << 21;
-  carry[15] = (s15 + (1 << 20)) >> 21;
+  carry[15] = (s15 + (Number.one << 20)) >> 21;
   s16 += carry[15];
   s15 -= carry[15] << 21;
 
-  s5 += s17 * 666643;
-  s6 += s17 * 470296;
-  s7 += s17 * 654183;
-  s8 -= s17 * 997805;
-  s9 += s17 * 136657;
-  s10 -= s17 * 683901;
-  s17 = 0;
+  s5 += s17 * Number.v666643;
+  s6 += s17 * Number.v470296;
+  s7 += s17 * Number.v654183;
+  s8 -= s17 * Number.v997805;
+  s9 += s17 * Number.v136657;
+  s10 -= s17 * Number.v683901;
+  s17 = Number.zero;
 
-  s4 += s16 * 666643;
-  s5 += s16 * 470296;
-  s6 += s16 * 654183;
-  s7 -= s16 * 997805;
-  s8 += s16 * 136657;
-  s9 -= s16 * 683901;
-  s16 = 0;
+  s4 += s16 * Number.v666643;
+  s5 += s16 * Number.v470296;
+  s6 += s16 * Number.v654183;
+  s7 -= s16 * Number.v997805;
+  s8 += s16 * Number.v136657;
+  s9 -= s16 * Number.v683901;
+  s16 = Number.zero;
 
-  s3 += s15 * 666643;
-  s4 += s15 * 470296;
-  s5 += s15 * 654183;
-  s6 -= s15 * 997805;
-  s7 += s15 * 136657;
-  s8 -= s15 * 683901;
-  s15 = 0;
+  s3 += s15 * Number.v666643;
+  s4 += s15 * Number.v470296;
+  s5 += s15 * Number.v654183;
+  s6 -= s15 * Number.v997805;
+  s7 += s15 * Number.v136657;
+  s8 -= s15 * Number.v683901;
+  s15 = Number.zero;
 
-  s2 += s14 * 666643;
-  s3 += s14 * 470296;
-  s4 += s14 * 654183;
-  s5 -= s14 * 997805;
-  s6 += s14 * 136657;
-  s7 -= s14 * 683901;
-  s14 = 0;
+  s2 += s14 * Number.v666643;
+  s3 += s14 * Number.v470296;
+  s4 += s14 * Number.v654183;
+  s5 -= s14 * Number.v997805;
+  s6 += s14 * Number.v136657;
+  s7 -= s14 * Number.v683901;
+  s14 = Number.zero;
 
-  s1 += s13 * 666643;
-  s2 += s13 * 470296;
-  s3 += s13 * 654183;
-  s4 -= s13 * 997805;
-  s5 += s13 * 136657;
-  s6 -= s13 * 683901;
-  s13 = 0;
+  s1 += s13 * Number.v666643;
+  s2 += s13 * Number.v470296;
+  s3 += s13 * Number.v654183;
+  s4 -= s13 * Number.v997805;
+  s5 += s13 * Number.v136657;
+  s6 -= s13 * Number.v683901;
+  s13 = Number.zero;
 
-  s0 += s12 * 666643;
-  s1 += s12 * 470296;
-  s2 += s12 * 654183;
-  s3 -= s12 * 997805;
-  s4 += s12 * 136657;
-  s5 -= s12 * 683901;
-  s12 = 0;
+  s0 += s12 * Number.v666643;
+  s1 += s12 * Number.v470296;
+  s2 += s12 * Number.v654183;
+  s3 -= s12 * Number.v997805;
+  s4 += s12 * Number.v136657;
+  s5 -= s12 * Number.v683901;
+  s12 = Number.zero;
 
-  carry[0] = (s0 + (1 << 20)) >> 21;
+  carry[0] = (s0 + (Number.one << 20)) >> 21;
   s1 += carry[0];
   s0 -= carry[0] << 21;
-  carry[2] = (s2 + (1 << 20)) >> 21;
+  carry[2] = (s2 + (Number.one << 20)) >> 21;
   s3 += carry[2];
   s2 -= carry[2] << 21;
-  carry[4] = (s4 + (1 << 20)) >> 21;
+  carry[4] = (s4 + (Number.one << 20)) >> 21;
   s5 += carry[4];
   s4 -= carry[4] << 21;
-  carry[6] = (s6 + (1 << 20)) >> 21;
+  carry[6] = (s6 + (Number.one << 20)) >> 21;
   s7 += carry[6];
   s6 -= carry[6] << 21;
-  carry[8] = (s8 + (1 << 20)) >> 21;
+  carry[8] = (s8 + (Number.one << 20)) >> 21;
   s9 += carry[8];
   s8 -= carry[8] << 21;
-  carry[10] = (s10 + (1 << 20)) >> 21;
+  carry[10] = (s10 + (Number.one << 20)) >> 21;
   s11 += carry[10];
   s10 -= carry[10] << 21;
 
-  carry[1] = (s1 + (1 << 20)) >> 21;
+  carry[1] = (s1 + (Number.one << 20)) >> 21;
   s2 += carry[1];
   s1 -= carry[1] << 21;
-  carry[3] = (s3 + (1 << 20)) >> 21;
+  carry[3] = (s3 + (Number.one << 20)) >> 21;
   s4 += carry[3];
   s3 -= carry[3] << 21;
-  carry[5] = (s5 + (1 << 20)) >> 21;
+  carry[5] = (s5 + (Number.one << 20)) >> 21;
   s6 += carry[5];
   s5 -= carry[5] << 21;
-  carry[7] = (s7 + (1 << 20)) >> 21;
+  carry[7] = (s7 + (Number.one << 20)) >> 21;
   s8 += carry[7];
   s7 -= carry[7] << 21;
-  carry[9] = (s9 + (1 << 20)) >> 21;
+  carry[9] = (s9 + (Number.one << 20)) >> 21;
   s10 += carry[9];
   s9 -= carry[9] << 21;
-  carry[11] = (s11 + (1 << 20)) >> 21;
+  carry[11] = (s11 + (Number.one << 20)) >> 21;
   s12 += carry[11];
   s11 -= carry[11] << 21;
 
-  s0 += s12 * 666643;
-  s1 += s12 * 470296;
-  s2 += s12 * 654183;
-  s3 -= s12 * 997805;
-  s4 += s12 * 136657;
-  s5 -= s12 * 683901;
-  s12 = 0;
+  s0 += s12 * Number.v666643;
+  s1 += s12 * Number.v470296;
+  s2 += s12 * Number.v654183;
+  s3 -= s12 * Number.v997805;
+  s4 += s12 * Number.v136657;
+  s5 -= s12 * Number.v683901;
+  s12 = Number.zero;
 
   carry[0] = s0 >> 21;
   s1 += carry[0];
@@ -2006,13 +2008,13 @@ void ScReduce(Uint8List out, Uint8List s) {
   s12 += carry[11];
   s11 -= carry[11] << 21;
 
-  s0 += s12 * 666643;
-  s1 += s12 * 470296;
-  s2 += s12 * 654183;
-  s3 -= s12 * 997805;
-  s4 += s12 * 136657;
-  s5 -= s12 * 683901;
-  s12 = 0;
+  s0 += s12 * Number.v666643;
+  s1 += s12 * Number.v470296;
+  s2 += s12 * Number.v654183;
+  s3 -= s12 * Number.v997805;
+  s4 += s12 * Number.v136657;
+  s5 -= s12 * Number.v683901;
+  s12 = Number.zero;
 
   carry[0] = s0 >> 21;
   s1 += carry[0];
@@ -2048,38 +2050,38 @@ void ScReduce(Uint8List out, Uint8List s) {
   s11 += carry[10];
   s10 -= carry[10] << 21;
 
-  out[0] = s0 >> 0;
-  out[1] = s0 >> 8;
-  out[2] = (s0 >> 16) | (s1 << 5);
-  out[3] = s1 >> 3;
-  out[4] = s1 >> 11;
-  out[5] = (s1 >> 19) | (s2 << 2);
-  out[6] = s2 >> 6;
-  out[7] = (s2 >> 14) | (s3 << 7);
-  out[8] = s3 >> 1;
-  out[9] = s3 >> 9;
-  out[10] = (s3 >> 17) | (s4 << 4);
-  out[11] = s4 >> 4;
-  out[12] = s4 >> 12;
-  out[13] = (s4 >> 20) | (s5 << 1);
-  out[14] = s5 >> 7;
-  out[15] = (s5 >> 15) | (s6 << 6);
-  out[16] = s6 >> 2;
-  out[17] = s6 >> 10;
-  out[18] = (s6 >> 18) | (s7 << 3);
-  out[19] = s7 >> 5;
-  out[20] = s7 >> 13;
-  out[21] = s8 >> 0;
-  out[22] = s8 >> 8;
-  out[23] = (s8 >> 16) | (s9 << 5);
-  out[24] = s9 >> 3;
-  out[25] = s9 >> 11;
-  out[26] = (s9 >> 19) | (s10 << 2);
-  out[27] = s10 >> 6;
-  out[28] = (s10 >> 14) | (s11 << 7);
-  out[29] = s11 >> 1;
-  out[30] = s11 >> 9;
-  out[31] = s11 >> 17;
+  out[0] = (s0 >> 0).intValue;
+  out[1] = (s0 >> 8).intValue;
+  out[2] = ((s0 >> 16) | (s1 << 5)).intValue;
+  out[3] = (s1 >> 3).intValue;
+  out[4] = (s1 >> 11).intValue;
+  out[5] = ((s1 >> 19) | (s2 << 2)).intValue;
+  out[6] = (s2 >> 6).intValue;
+  out[7] = ((s2 >> 14) | (s3 << 7)).intValue;
+  out[8] = (s3 >> 1).intValue;
+  out[9] = (s3 >> 9).intValue;
+  out[10] = ((s3 >> 17) | (s4 << 4)).intValue;
+  out[11] = (s4 >> 4).intValue;
+  out[12] = (s4 >> 12).intValue;
+  out[13] = ((s4 >> 20) | (s5 << 1)).intValue;
+  out[14] = (s5 >> 7).intValue;
+  out[15] = ((s5 >> 15) | (s6 << 6)).intValue;
+  out[16] = (s6 >> 2).intValue;
+  out[17] = (s6 >> 10).intValue;
+  out[18] = ((s6 >> 18) | (s7 << 3)).intValue;
+  out[19] = (s7 >> 5).intValue;
+  out[20] = (s7 >> 13).intValue;
+  out[21] = (s8 >> 0).intValue;
+  out[22] = (s8 >> 8).intValue;
+  out[23] = ((s8 >> 16) | (s9 << 5)).intValue;
+  out[24] = (s9 >> 3).intValue;
+  out[25] = (s9 >> 11).intValue;
+  out[26] = ((s9 >> 19) | (s10 << 2)).intValue;
+  out[27] = (s10 >> 6).intValue;
+  out[28] = ((s10 >> 14) | (s11 << 7)).intValue;
+  out[29] = (s11 >> 1).intValue;
+  out[30] = (s11 >> 9).intValue;
+  out[31] = (s11 >> 17).intValue;
 }
 
 /// order is the order of Curve25519 in little-endian form.
