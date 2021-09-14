@@ -1257,7 +1257,7 @@ void ScMulAdd(Uint8List s, Uint8List a, Uint8List b, Uint8List c) {
   var a7 = Number.v2097151 & (load3(a.sublist(18, a.length)) >> 3);
   var a8 = Number.v2097151 & load3(a.sublist(21, a.length));
   var a9 = Number.v2097151 & (load4(a.sublist(23, a.length)) >> 5);
-  var a10 =Number.v2097151  & (load3(a.sublist(26, a.length)) >> 2);
+  var a10 = Number.v2097151 & (load3(a.sublist(26, a.length)) >> 2);
   var a11 = (load4(a.sublist(28, a.length)) >> 7);
 
   var b0 = Number.v2097151 & load3(b.sublist(0, b.length));
@@ -1270,7 +1270,7 @@ void ScMulAdd(Uint8List s, Uint8List a, Uint8List b, Uint8List c) {
   var b7 = Number.v2097151 & (load3(b.sublist(18, b.length)) >> 3);
   var b8 = Number.v2097151 & load3(b.sublist(21, b.length));
   var b9 = Number.v2097151 & (load4(b.sublist(23, b.length)) >> 5);
-  var b10 =Number.v2097151  & (load3(b.sublist(26, b.length)) >> 2);
+  var b10 = Number.v2097151 & (load3(b.sublist(26, b.length)) >> 2);
   var b11 = (load4(b.sublist(28, b.length)) >> 7);
 
   var c0 = Number.v2097151 & load3(c.sublist(0, c.length));

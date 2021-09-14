@@ -18,6 +18,7 @@ class Int64Number implements Number {
 
   @override
   Int64Number operator -() {
+    // ignore: unnecessary_cast
     return Int64Number(-(val as Int64));
   }
 
@@ -65,7 +66,7 @@ class Int64Number implements Number {
   Int64 get val => _value;
 
   @override
-  int get intValue  => _value.toInt();
+  int get intValue => _value.toInt();
 
   @override
   bool operator ==(Object other) =>

@@ -1,7 +1,7 @@
 import 'package:ed25519_edwards/src/number/number.dart';
 
 class IntNumber implements Number {
-  final int _value ;
+  final int _value;
 
   IntNumber(this._value);
 
@@ -17,6 +17,7 @@ class IntNumber implements Number {
 
   @override
   IntNumber operator -() {
+    // ignore: unnecessary_cast
     return IntNumber(-(val as int));
   }
 
@@ -64,7 +65,7 @@ class IntNumber implements Number {
   int get val => _value;
 
   @override
-  int get intValue  => _value;
+  int get intValue => _value;
 
   @override
   bool operator ==(Object other) =>

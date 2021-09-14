@@ -50,5 +50,4 @@ abstract class Number {
   static Number v654183 = Number(654183);
   static Number v666643 = Number(666643);
   static Number v997805 = Number(997805);
-
 }
