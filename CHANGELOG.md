@@ -1,3 +1,6 @@
+### 0.3.1
+Moved Number classes to dedicated library: adaptive_number [#5](https://github.com/Tougee/ed25519/pull/5), now we got a new dependencies
+
 ### 0.3.0
 A delightful solution to adapting web platform, thanks for [lemoony](https://github.com/lemoony)'s contribution!
 [Support dartjs by using fixnum/int64 on web instead](https://github.com/Tougee/ed25519/pull/4)
