@@ -69,8 +69,7 @@ MacBook Pro (16-inch, 2019), macOS Big Sur, with 2.4GHz i9 32GB
 
 #### JiT (Dart VM) Benchmark
 
-> $ pub get  
-> $ pub run benchmark/ed25519_benchmark.dart
+> dart test test/benchmark/ed25519_benchmark.dart
 
 | type |    rate    | iterations    |   time  | data throughput |
 |----------|:----------:|---------------|:-------:|:---------------:|
@@ -79,21 +78,20 @@ MacBook Pro (16-inch, 2019), macOS Big Sur, with 2.4GHz i9 32GB
 
 #### AoT (native binary)
 
-> $ pub get  
-> $ dart2native benchmark/ed25519_benchmark.dart -o ed25519_benchmark  
-> $ ./ed25519_benchmark
+> dart2native test/benchmark/ed25519_benchmark.dart -o ed25519_benchmark  
+> ./ed25519_benchmark
 
 | type |    rate    | iterations    |   time  | data throughput |
 |----------|:----------:|---------------|:-------:|:---------------:|
 | Ed25519 - sign | 21.64 MB/s | 109 iterations | 5036 ms | 109.00 MB |
 | Ed25519 - verify | 37.20 MB/s | 187 iterations | 5027 ms | 187.00 MB |
 
-#### JS (Dart2JS) benchmark
+#### JS (Dart2JS) benchmark (too slow, suggest using other libs for dart2js and flutter web)
 
-> $ pub get  
-> $ pub run benchmark/ed25519_benchmark.dart -p chrome
+> dart test test/benchmark/ed25519_benchmark.dart -p chrome
 
 | type |    rate    | iterations    |   time  | data throughput |
 |----------|:----------:|---------------|:-------:|:---------------:|
-| Ed25519 - sign | 50.17 MB/s | 251 iterations | 5002 ms | 251.00 MB |
-| Ed25519 - verify | 95.21 MB/s | 477 iterations | 5009 ms | 477.00 MB |
+| Ed25519 - sign | 797.03 KB/s | 4 iterations | 5139 ms | 4.00 MB |
+| Ed25519 - verify | 1.53 MB/s | 8 iterations | 5231 ms | 8.00 MB |
+
