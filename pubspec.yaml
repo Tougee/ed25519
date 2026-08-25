@@ -1,10 +1,10 @@
 name: ed25519_edwards
-description: Dart port of ed25519 from Go Cryptography ed25519
-version: 0.3.1
+description: Ed25519 signature implementation for Dart, ported from Go cryptography and compatible with RFC 8032 keys.
+version: 0.3.2
 homepage: https://github.com/Tougee/ed25519
 
 environment:
-  sdk: '>=2.12.0 <3.0.0'
+  sdk: '>=2.12.0 <4.0.0'
 
 dependencies:
   collection: ^1.15.0
@@ -12,7 +12,7 @@ dependencies:
   convert: ^3.0.0
   adaptive_number: ^1.0.0
 dev_dependencies:
-  pedantic: ^1.10.0
+  lints: ^1.0.1
   test: ^1.16.4
   hex: ^0.2.0
   benchmark_harness: ^2.0.0

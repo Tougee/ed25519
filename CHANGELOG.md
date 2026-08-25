@@ -1,3 +1,7 @@
+### 0.3.2
+- Improve pubspec metadata for pub.dev scoring.
+- Update SDK compatibility metadata and lint configuration.
+
 ### 0.3.1
 Moved Number classes to dedicated library: adaptive_number [#5](https://github.com/Tougee/ed25519/pull/5), now we got a new dependencies
 

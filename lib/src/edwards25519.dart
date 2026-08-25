@@ -1,3 +1,5 @@
+// ignore_for_file: non_constant_identifier_names
+
 import 'dart:typed_data';
 
 import 'package:adaptive_number/adaptive_number.dart';
@@ -965,12 +967,7 @@ class PreComputedGroupElement {
 
   PreComputedGroupElement();
 
-  PreComputedGroupElement.fromList(
-      FieldElement ypx, FieldElement ymx, FieldElement xy2d) {
-    yPlusX = ypx;
-    yMinusX = ymx;
-    this.xy2d = xy2d;
-  }
+  PreComputedGroupElement.fromList(this.yPlusX, this.yMinusX, this.xy2d);
 
   void Zero() {
     FeOne(yPlusX);

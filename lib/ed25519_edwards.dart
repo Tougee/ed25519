@@ -1,3 +1,5 @@
+// ignore_for_file: constant_identifier_names
+
 /// Package ed25519 implements the Ed25519 signature algorithm. See
 /// https://ed25519.cr.yp.to/.
 ///

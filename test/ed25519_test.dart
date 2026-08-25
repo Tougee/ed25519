@@ -13,8 +13,8 @@ void main() {
     var public = HEX.decode(publicStr);
     var privateKey = ed.PrivateKey([...seed, ...public]);
     var publicKey = ed.public(privateKey);
-    var message = HEX.decode(plain);
-    var sig = ed.sign(privateKey, message as Uint8List);
+    var message = Uint8List.fromList(HEX.decode(plain));
+    var sig = ed.sign(privateKey, message);
 
     var targetSig = HEX.decode(sigStr);
     assert(ListEquality().equals(targetSig, sig));
@@ -56,12 +56,12 @@ void main() {
     var privateKey = keyPair.privateKey;
     var publicKey = keyPair.publicKey;
     var message = utf8.encode('test message');
-    var sig = ed.sign(privateKey, message as Uint8List);
+    var sig = ed.sign(privateKey, message);
     var result = ed.verify(publicKey, message, sig);
     assert(result == true);
 
     var wrongMessage = utf8.encode('wrong message');
-    var wrongResult = ed.verify(publicKey, wrongMessage as Uint8List, sig);
+    var wrongResult = ed.verify(publicKey, wrongMessage, sig);
     assert(wrongResult == false);
   });
 }
