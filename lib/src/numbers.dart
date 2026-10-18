@@ -1,4 +1,4 @@
-import 'package:adaptive_number/adaptive_number.dart';
+import 'number.dart';
 
 abstract class Numbers {
   static Number v8 = Number(8);
