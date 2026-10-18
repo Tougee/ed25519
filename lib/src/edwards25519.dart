@@ -2,10 +2,10 @@
 
 import 'dart:typed_data';
 
-import 'package:adaptive_number/adaptive_number.dart';
 import 'package:ed25519_edwards/src/numbers.dart';
 
 import 'const.dart';
+import 'number.dart';
 
 class FieldElement {
   late List<Number> innerList;

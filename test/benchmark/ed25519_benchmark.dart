@@ -35,4 +35,8 @@ class Ed25519Benchmark extends RateBenchmark {
 void main() {
   Ed25519Benchmark(true).report();
   Ed25519Benchmark(false).report();
+  // With 1 MiB of data, SHA-512 is most of the time. Short messages show the
+  // cost of the curve arithmetic.
+  Ed25519Benchmark(true, 256).report();
+  Ed25519Benchmark(false, 256).report();
 }
